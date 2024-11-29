@@ -1,0 +1,86 @@
+{
+  "root": true,
+  "parserOptions": {
+    "ecmaVersion": "latest",
+    "project": true
+  },
+  "env": {
+    "es6": true
+  },
+  "ignorePatterns": ["dist/**/*"],
+  "overrides": [
+    {
+      "files": ["*.ts"],
+      "extends": [
+        "airbnb-base",
+        "eslint:recommended",
+        "plugin:@typescript-eslint/recommended",
+        "plugin:import/typescript",
+        "plugin:@typescript-eslint/recommended-type-checked",
+        "prettier"
+      ],
+      "overrides": [
+        {
+          "files": ["*.spec.ts"],
+          "rules": {
+            "max-lines-per-function": "off",
+            "@typescript-eslint/unbound-method": "off",
+            "@typescript-eslint/consistent-type-assertions": "off"
+          }
+        }
+      ],
+      "rules": {
+        "import/extensions": [
+          "error",
+          "ignorePackages",
+          {
+            "ts": "never",
+            "tsx": "never",
+            "js": "never",
+            "jsx": "never"
+          }
+        ],
+        "no-useless-constructor": "off",
+        "no-empty-function": "off",
+        "unused-imports/no-unused-imports": "error",
+        "@typescript-eslint/consistent-type-assertions": ["error", { "assertionStyle": "never" }],
+        "@typescript-eslint/no-explicit-any": "error",
+        "class-methods-use-this": "off",
+        "dot-notation": "off",
+        "@typescript-eslint/explicit-function-return-type": "error",
+        "lines-between-class-members": [
+          "error",
+          {
+            "enforce": [
+              { "blankLine": "always", "prev": "*", "next": "method" },
+              { "blankLine": "always", "prev": "method", "next": "*" }
+            ]
+          }
+        ],
+        "@typescript-eslint/explicit-member-accessibility": [
+          "error",
+          {
+            "accessibility": "explicit",
+            "overrides": {
+              "constructors": "off"
+            }
+          }
+        ],
+        "@typescript-eslint/no-inferrable-types": "error",
+        "max-lines-per-function": ["error", { "max": 40, "skipBlankLines": true, "skipComments": true }],
+        "curly": ["error", "all"],
+        "import/prefer-default-export": "off",
+        "@typescript-eslint/no-floating-promises": "off"
+      },
+      "settings": {
+        "import/resolver": {
+          "alias": {
+            "extensions": [".ts", ".js", ".jsx", ".json"],
+            "map": [["@", "./src"]]
+          }
+        }
+      },
+      "plugins": ["unused-imports"]
+    }
+  ]
+}

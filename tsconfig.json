@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    "removeComments": true,
+    "emitDecoratorMetadata": true,
+    "allowSyntheticDefaultImports": true,
+    "outDir": "./dist",
+    "incremental": true,
+    "strictNullChecks": true,
+    "noImplicitAny": true,
+    "strictBindCallApply": true,
+    "strict": true,
+    "noImplicitOverride": true,
+    "forceConsistentCasingInFileNames": true,
+    "downlevelIteration": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "sourceMap": true,
+    "declaration": false,
+    "experimentalDecorators": true,
+    "importHelpers": true,
+    "module": "commonjs",
+    "baseUrl": "./"
+  }
+}

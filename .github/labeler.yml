@@ -33,6 +33,10 @@ revert:
   - head-branch:
       - '^revert'
 
+styles:
+  - changed-files:
+      - any-glob-to-any-file: '**/*.scss'
+
 sprint1:
   - head-branch: 'RS-01'
 
@@ -44,3 +48,6 @@ sprint3:
 
 sprint4:
   - head-branch: 'RS-04'
+
+sprint5:
+  - head-branch: 'RS-05'

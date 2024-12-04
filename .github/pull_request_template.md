@@ -2,7 +2,7 @@
 
 📍 conforms with the following format:
 
-- [ ] prefix (following the [convention](https://www.conventionalcommits.org/en/v1.0.0-beta.2/): `feat`, `fix`, `hotfix`, `chore`, `refactor`, `revert`, `docs`, `test`)
+- [ ] prefix (following the [convention](https://www.conventionalcommits.org/en/v1.0.0-beta.2/): `feat`, `fix`, `hotfix`, `chore`, `refactor`, `revert`, `docs`, `style`, `test`)
 - [ ] sprint and issue number (e.g. `RS-01-02`, where `01` - is the sprint number and `02` - is the issue number)
 - [ ] short description
 
@@ -36,6 +36,7 @@ Specify if any documentation updates are required and provide details on what ne
 
 ## Auto-Review 🤖
 
+- [x] The reviewers have been requested via CODEOWNERS 📝
 - [x] The labels have been added 🎨
       [![Pull Request Labeler](https://github.com/kleostro/RSSence-backend/actions/workflows/labeler.yml/badge.svg)](https://github.com/kleostro/RSSence-backend/actions/workflows/labeler.yml)
 - [x] My code doesn't generate any errors or warnings ⚠️
@@ -48,5 +49,6 @@ Specify if any documentation updates are required and provide details on what ne
 - [ ] I wrote the correct title for the PR 🗝️
 - [ ] I wrote a comprehensive description for the PR 📜
 - [ ] I have performed a self-review of my own code ✅
+- [ ] My code builds successfully ⚙️
 - [ ] I have commented my code where needed 📝
 - [ ] I am happy with my PR and ready to merge ❤️‍🔥

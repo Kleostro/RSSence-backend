@@ -21,7 +21,11 @@
     "declaration": false,
     "experimentalDecorators": true,
     "importHelpers": true,
+    "target": "ES6",
     "module": "commonjs",
-    "baseUrl": "./"
+    "baseUrl": "./",
+    "paths": {
+      "@/*": ["src/*"]
+    }
   }
 }

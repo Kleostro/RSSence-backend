@@ -23,4 +23,4 @@ jobs:
         run: npm test
 
       - name: Generate coverage report
-        run: npm run test:coverage
+        run: npm run test:cov

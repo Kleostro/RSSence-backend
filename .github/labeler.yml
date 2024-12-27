@@ -1,6 +1,14 @@
-documentation:
-  - changed-files:
-      - any-glob-to-any-file: '**/*.md'
+ci:
+  - any:
+      - changed-files:
+          - any-glob-to-any-file: '.github/*'
+          - any-glob-to-any-file: '.husky/*'
+          - any-glob-to-any-file: '.husky_scripts/*'
+          - any-glob-to-any-file: '.lintstagedrc'
+          - any-glob-to-any-file: '.commitlintrc.json'
+          - any-glob-to-any-file: '.validate-branch-name.cjs'
+      - head-branch:
+          - '^ci'
 
 chore:
   - any:
@@ -8,6 +16,10 @@ chore:
           - any-glob-to-all-files: '*'
       - head-branch:
           - '^chore'
+
+documentation:
+  - changed-files:
+      - any-glob-to-any-file: '**/*.md'
 
 feature:
   - head-branch:
@@ -18,9 +30,17 @@ fix:
       - '^fix'
       - '^hotfix'
 
+performance:
+  - head-branch:
+      - '^perf'
+
 refactor:
   - head-branch:
       - '^refactor'
+
+style:
+  - head-branch:
+      - '^style'
 
 test:
   - any:
@@ -29,11 +49,7 @@ test:
       - changed-files:
           - any-glob-to-any-file: '**/*.spec.ts'
 
-revert:
-  - head-branch:
-      - '^revert'
-
-styles:
+styling:
   - changed-files:
       - any-glob-to-any-file: '**/*.scss'
 

@@ -4,6 +4,7 @@ import { PrismaClient } from '@prisma/client';
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit {
   public async onModuleInit(): Promise<void> {
-    await this.$connect();
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+    await this['$connect']();
   }
 }

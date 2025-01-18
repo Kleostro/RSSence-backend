@@ -14,11 +14,14 @@ export class AuthService {
     private usersService: UsersService,
   ) {}
 
-  public async register(registerDto: RegisterDto): Promise<User> {
+  public async register(registerDto: RegisterDto): Promise<User | null> {
     const hashedPassword = await bcrypt.hash(registerDto.password, 10);
+
+    await this.usersService.isEmailExist(registerDto.email);
+
     return this.prisma.user.create({
       data: {
-        ...registerDto,
+        email: registerDto.email.toLowerCase(),
         password: hashedPassword,
       },
     });

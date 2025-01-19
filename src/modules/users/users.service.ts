@@ -9,6 +9,8 @@ export class UsersService {
   constructor(private prisma: PrismaService) {}
 
   public async createOne(dto: CreateUserDto): Promise<User> {
+    await this.isEmailExist(dto.email);
+
     const user = await this.prisma.user.create({ data: dto });
     return user;
   }

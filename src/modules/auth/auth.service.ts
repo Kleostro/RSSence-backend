@@ -13,8 +13,6 @@ export class AuthService {
   constructor(private usersService: UsersService) {}
 
   public async register(dto: CreateUserDto): Promise<User> {
-    await this.usersService.isEmailExist(dto.email);
-
     const hashedPassword = await bcrypt.hash(dto.password, this.HASH_SALT);
     const userDto = { ...dto, email: dto.email.toLowerCase(), password: hashedPassword };
 

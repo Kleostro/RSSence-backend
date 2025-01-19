@@ -1,21 +1,20 @@
 import { Body, Controller, Get, Post } from '@nestjs/common';
 import { User } from '@prisma/client';
 
+import { CreateUserDto } from '../users/dto/create-user.dto';
 import { AuthService } from './auth.service';
-import { LoginDto } from './dto/login-dto';
-import { RegisterDto } from './dto/register-dto';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post()
-  public register(@Body() registerDto: RegisterDto): Promise<User | null> {
-    return this.authService.register(registerDto);
+  public async register(@Body() dto: CreateUserDto): Promise<User> {
+    return this.authService.register(dto);
   }
 
   @Get()
-  public login(@Body() loginDto: LoginDto): Promise<User | null> {
-    return this.authService.login(loginDto);
+  public login(@Body() dto: CreateUserDto): Promise<User> {
+    return this.authService.login(dto);
   }
 }

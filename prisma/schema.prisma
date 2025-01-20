@@ -10,13 +10,13 @@ datasource db {
 model User {
   id Int @id @default(autoincrement())
 
-  email          String @unique
-  hashedPassword String? @map("hashed_password")
+  email          String     @unique
+  hashedPassword String?    @map("hashed_password")
+  
+  status         UserStatus @default(offline)
 
-  status UserStatus @default(offline)
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  createdAt      DateTime   @default(now()) @map("created_at")
+  updatedAt      DateTime   @updatedAt @map("updated_at")
 
   @@map("users")
 }

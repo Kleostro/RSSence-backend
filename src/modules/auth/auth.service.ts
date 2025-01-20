@@ -1,36 +1,81 @@
-import * as bcrypt from 'bcrypt';
+import { Response } from 'express';
 
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { normalizeEmail } from '@/shared/utils/normalizeEmail';
+import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { JwtService } from '@nestjs/jwt';
 import { User } from '@prisma/client';
 
-import { CreateUserDto } from '../users/dto/create-user.dto';
 import { UsersService } from '../users/users.service';
+import { RegisterDto } from './dto/register.dto';
+import { PasswordService } from './services/password/password.service';
 
 @Injectable()
 export class AuthService {
-  private HASH_SALT = 10;
+  private readonly ACCESS_TOKEN_OPTIONS = {
+    httpOnly: true,
+    secure: true,
+  };
 
-  constructor(private usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly passwordService: PasswordService,
+    private readonly jwt: JwtService,
+    private readonly config: ConfigService,
+  ) {}
 
-  public async register(dto: CreateUserDto): Promise<User> {
-    const hashedPassword = await bcrypt.hash(dto.password, this.HASH_SALT);
-    const userDto = { ...dto, email: dto.email.toLowerCase(), password: hashedPassword };
+  public async register({ email, password }: RegisterDto, res: Response): Promise<string> {
+    const hashedPassword = await this.passwordService.hash(password);
 
-    return this.usersService.createOne(userDto);
+    const createdUser = await this.usersService.createOne({ email: normalizeEmail(email), hashedPassword });
+
+    return this.generateTokens(createdUser.id, res);
   }
 
-  public async login(dto: CreateUserDto): Promise<User> {
-    return this.validateUser(dto.email, dto.password);
-  }
+  public async googleAuth(email: string, res: Response): Promise<string> {
+    const normalizedEmail = normalizeEmail(email);
+    const user = await this.usersService.getOne({ email: normalizedEmail });
 
-  private async validateUser(email: string, pass: string): Promise<User> {
-    const user = await this.usersService.findByEmail(email);
-
-    const isPasswordsMatch = await bcrypt.compare(pass, user.password);
-    if (!isPasswordsMatch) {
-      throw new NotFoundException('Invalid credentials!');
+    if (user) {
+      return this.generateTokens(user.id, res);
     }
 
-    return user;
+    const createdUser = await this.usersService.createOne({ email: normalizedEmail });
+
+    return this.generateTokens(createdUser.id, res);
+  }
+
+  public async validateUser(email: string, pass: string): Promise<User | null> {
+    const user = await this.usersService.getOne({ email: normalizeEmail(email) });
+
+    if (!user?.hashedPassword) {
+      // TBD: send the auto-generated password to user email
+      return null;
+    }
+
+    const isPasswordValid = await this.passwordService.verify(pass, user.hashedPassword);
+
+    return isPasswordValid ? user : null;
+  }
+
+  public async generateTokens(userId: number, res: Response): Promise<string> {
+    const [accessToken, refreshToken] = await Promise.all([
+      this.generateToken(userId, 'JWT_ACCESS_SECRET', 'JWT_ACCESS_EXPIRES'),
+      this.generateToken(userId, 'JWT_REFRESH_SECRET', 'JWT_REFRESH_EXPIRES'),
+    ]);
+
+    res.cookie('refreshToken', refreshToken, this.ACCESS_TOKEN_OPTIONS);
+
+    return accessToken;
+  }
+
+  private async generateToken(userId: number, secretKey: string, expiresKey: string): Promise<string> {
+    return this.jwt.signAsync(
+      { userId },
+      {
+        secret: this.config.getOrThrow(secretKey),
+        expiresIn: this.config.getOrThrow(expiresKey),
+      },
+    );
   }
 }

@@ -7,6 +7,7 @@ import { AuthService } from './auth.service';
 import { GoogleGuard } from './guards/google.guard';
 import { JwtAccessGuard } from './guards/jwt-access.guard';
 import { PasswordService } from './services/password/password.service';
+import { GoogleStrategy } from './strategies/google.strategy';
 import { JwtAccessStrategy } from './strategies/jwt-access.strategy';
 import { JwtRefreshStrategy } from './strategies/jwt-refresh.strategy';
 import { LocalStrategy } from './strategies/local.strategy';
@@ -18,8 +19,9 @@ import { LocalStrategy } from './strategies/local.strategy';
     AuthService,
     LocalStrategy,
     JwtRefreshStrategy,
-    JwtAccessGuard,
     GoogleGuard,
+    GoogleStrategy,
+    JwtAccessGuard,
     JwtAccessStrategy,
     PasswordService,
   ],

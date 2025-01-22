@@ -5,8 +5,8 @@ module.exports = {
 
 // Branch Name Examples:
 
-// "feat/RS-01-01/add-login-form" // where 01 is the sprint number and 01 is the issue number
-// "fix/RS-02-03/fix-router" // where 02 is the sprint number and 03 is the issue number
+// "feat/RS-01-01/add_login_form" // where 01 is the sprint number and 01 is the issue number
+// "fix/RS-02-03/fix_router" // where 02 is the sprint number and 03 is the issue number
 
 // more info here https://www.conventionalcommits.org/en/v1.0.0/
 

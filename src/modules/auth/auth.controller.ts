@@ -27,8 +27,8 @@ export class AuthController {
     return this.authService.generateTokens(userId, res);
   }
 
-  @Post('refresh')
   @UseGuards(AuthGuard('jwt-refresh'))
+  @Post('refresh')
   public async refreshToken(
     @CurrentUser('id', ParseIntPipe) userId: number,
     @Res({ passthrough: true }) res: Response,

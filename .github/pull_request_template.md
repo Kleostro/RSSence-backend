@@ -36,7 +36,8 @@ Specify if any documentation updates are required and provide details on what ne
 
 ## Auto-Review 🤖
 
-- [x] The reviewers have been requested via CODEOWNERS 📝
+- [x] The reviewers have been requested 📝
+      [![Request Review on PR Open](https://github.com/Kleostro/RSSence-backend/actions/workflows/request_review.yml/badge.svg)](https://github.com/Kleostro/RSSence-backend/actions/workflows/request_review.yml)
 - [x] The labels have been added 🎨
       [![Pull Request Labeler](https://github.com/kleostro/RSSence-backend/actions/workflows/labeler.yml/badge.svg)](https://github.com/kleostro/RSSence-backend/actions/workflows/labeler.yml)
 - [x] My code doesn't generate any errors or warnings ⚠️

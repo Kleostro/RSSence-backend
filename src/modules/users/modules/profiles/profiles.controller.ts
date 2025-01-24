@@ -13,7 +13,12 @@ import { ProfilesService } from './profiles.service';
 export class ProfilesController {
   constructor(private readonly profilesService: ProfilesService) {}
 
-  @Post()
+  @Get('me')
+  public async getOne(@CurrentUser('id', ParseIntPipe) userId: number): Promise<Profile | null> {
+    return this.profilesService.getOne(userId);
+  }
+
+  @Post('me')
   public async createOne(
     @Body() createProfileDto: CreateProfileDto,
     @CurrentUser('id', ParseIntPipe) userId: number,
@@ -21,17 +26,7 @@ export class ProfilesController {
     return this.profilesService.createOne(createProfileDto, userId);
   }
 
-  @Get('me')
-  public async getMe(@CurrentUser('id', ParseIntPipe) userId: number): Promise<Profile | null> {
-    return this.profilesService.getMe(userId);
-  }
-
-  @Get('username-check')
-  public async checkAvailableUsername(@Body() { username }: CheckUsernameDto): Promise<boolean> {
-    return this.profilesService.checkAvailableUsername(username);
-  }
-
-  @Patch()
+  @Patch('me')
   public async updateOne(
     @Body() updateProfileDto: UpdateProfileDto,
     @CurrentUser('id', ParseIntPipe) userId: number,
@@ -39,8 +34,13 @@ export class ProfilesController {
     return this.profilesService.updateOne(updateProfileDto, userId);
   }
 
-  @Delete()
-  public async removeOne(@CurrentUser('id', ParseIntPipe) userId: number): Promise<Profile> {
-    return this.profilesService.removeOne(userId);
+  @Delete('me')
+  public async deleteOne(@CurrentUser('id', ParseIntPipe) userId: number): Promise<Profile> {
+    return this.profilesService.deleteOne(userId);
+  }
+
+  @Get('username-check')
+  public async checkAvailableUsername(@Body() { username }: CheckUsernameDto): Promise<boolean> {
+    return this.profilesService.checkAvailableUsername(username);
   }
 }

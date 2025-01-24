@@ -15,7 +15,7 @@ export class ProfilesService {
     return this.prisma.profile.create({ data: { ...dto, userId } });
   }
 
-  public async getMe(userId: number): Promise<Profile | null> {
+  public async getOne(userId: number): Promise<Profile | null> {
     await this.ensureProfileExists(userId);
     return this.prisma.profile.findFirst({ where: { userId } });
   }
@@ -26,7 +26,7 @@ export class ProfilesService {
     return this.prisma.profile.update({ where: { userId }, data: dto });
   }
 
-  public async removeOne(userId: number): Promise<Profile> {
+  public async deleteOne(userId: number): Promise<Profile> {
     await this.ensureProfileExists(userId);
     return this.prisma.profile.delete({ where: { userId } });
   }

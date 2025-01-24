@@ -6,7 +6,7 @@ model User {
 
   status UserStatus @default(offline)
 
-  profile Profile? 
+  profile Profile?
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -17,6 +17,7 @@ model User {
 model Profile {
   firstname String?
   lastname  String?
+  username  String?   @unique
   bio       String?
   avatarUrl String?   @map("avatar_url")
   birthdate DateTime?

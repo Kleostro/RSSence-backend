@@ -11,6 +11,7 @@ export class ProfilesService {
 
   public async createOne(dto: CreateProfileDto, userId: number): Promise<Profile> {
     await this.ensureProfileDoesNotExist(userId);
+    await this.ensureUsernameAvailable(dto.username);
     return this.prisma.profile.create({ data: { ...dto, userId } });
   }
 
@@ -21,12 +22,25 @@ export class ProfilesService {
 
   public async updateOne(dto: UpdateProfileDto, userId: number): Promise<Profile | null> {
     await this.ensureProfileExists(userId);
+    await this.ensureUsernameAvailable(dto.username);
     return this.prisma.profile.update({ where: { userId }, data: dto });
   }
 
   public async removeOne(userId: number): Promise<Profile> {
     await this.ensureProfileExists(userId);
     return this.prisma.profile.delete({ where: { userId } });
+  }
+
+  public async checkAvailableUsername(username?: string): Promise<boolean> {
+    const result = await this.prisma.profile.findFirst({ where: { username } });
+    return !result;
+  }
+
+  private async ensureUsernameAvailable(username?: string): Promise<void> {
+    const result = await this.checkAvailableUsername(username);
+    if (!result) {
+      throw new ConflictException('Username already exist!');
+    }
   }
 
   private async hasProfile(userId: number): Promise<Profile | null> {

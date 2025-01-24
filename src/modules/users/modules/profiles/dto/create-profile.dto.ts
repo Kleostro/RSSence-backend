@@ -30,6 +30,14 @@ export class CreateProfileDto {
   @IsDefined()
   @IsNotEmpty()
   @IsString()
+  @MinLength(3)
+  @MaxLength(16)
+  public username?: string;
+
+  @IsOptional()
+  @IsDefined()
+  @IsNotEmpty()
+  @IsString()
   @MaxLength(500)
   public bio?: string;
 

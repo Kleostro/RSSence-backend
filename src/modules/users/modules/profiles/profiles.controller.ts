@@ -3,6 +3,7 @@ import { Body, Controller, Delete, Get, ParseIntPipe, Patch, Post, UseGuards } f
 import { Profile } from '@prisma/client';
 
 import { JwtAccessGuard } from '../../../auth/guards/jwt-access.guard';
+import { CheckUsernameDto } from './dto/check-username';
 import { CreateProfileDto } from './dto/create-profile.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { ProfilesService } from './profiles.service';
@@ -23,6 +24,11 @@ export class ProfilesController {
   @Get()
   public async getMe(@CurrentUser('id', ParseIntPipe) userId: number): Promise<Profile | null> {
     return this.profilesService.getMe(userId);
+  }
+
+  @Get('username-check')
+  public async checkAvailableUsername(@Body() { username }: CheckUsernameDto): Promise<boolean> {
+    return this.profilesService.checkAvailableUsername(username);
   }
 
   @Patch()

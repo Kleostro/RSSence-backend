@@ -21,7 +21,7 @@ export class ProfilesController {
     return this.profilesService.createOne(createProfileDto, userId);
   }
 
-  @Get()
+  @Get('me')
   public async getMe(@CurrentUser('id', ParseIntPipe) userId: number): Promise<Profile | null> {
     return this.profilesService.getMe(userId);
   }

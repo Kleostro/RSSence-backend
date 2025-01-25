@@ -24,7 +24,7 @@ export class AuthService {
     private readonly config: ConfigService,
   ) {}
 
-  public async register({ email, password }: RegisterDto, res: Response): Promise<string> {
+  public async register({ email, password }: RegisterDto, res: Response): Promise<{ accessToken: string }> {
     const hashedPassword = await this.passwordService.hash(password);
 
     const createdUser = await this.usersService.createOne({ email: normalizeEmail(email), hashedPassword });
@@ -32,7 +32,7 @@ export class AuthService {
     return this.generateTokens(createdUser.id, res);
   }
 
-  public async googleAuth(email: string, res: Response): Promise<string> {
+  public async googleAuth(email: string, res: Response): Promise<{ accessToken: string }> {
     const normalizedEmail = normalizeEmail(email);
     const user = await this.usersService.getOne({ email: normalizedEmail });
 
@@ -58,7 +58,7 @@ export class AuthService {
     return isPasswordValid ? user : null;
   }
 
-  public async generateTokens(userId: number, res: Response): Promise<string> {
+  public async generateTokens(userId: number, res: Response): Promise<{ accessToken: string }> {
     const [accessToken, refreshToken] = await Promise.all([
       this.generateToken(userId, 'JWT_ACCESS_SECRET', 'JWT_ACCESS_EXPIRES'),
       this.generateToken(userId, 'JWT_REFRESH_SECRET', 'JWT_REFRESH_EXPIRES'),
@@ -66,7 +66,7 @@ export class AuthService {
 
     res.cookie('refreshToken', refreshToken, this.ACCESS_TOKEN_OPTIONS);
 
-    return accessToken;
+    return { accessToken };
   }
 
   private async generateToken(userId: number, secretKey: string, expiresKey: string): Promise<string> {

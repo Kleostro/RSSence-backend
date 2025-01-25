@@ -14,7 +14,10 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('register')
-  public async register(@Body() dto: RegisterDto, @Res({ passthrough: true }) res: Response): Promise<string> {
+  public async register(
+    @Body() dto: RegisterDto,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<{ accessToken: string }> {
     return this.authService.register(dto, res);
   }
 
@@ -23,7 +26,7 @@ export class AuthController {
   public async login(
     @CurrentUser('id', ParseIntPipe) userId: number,
     @Res({ passthrough: true }) res: Response,
-  ): Promise<string> {
+  ): Promise<{ accessToken: string }> {
     return this.authService.generateTokens(userId, res);
   }
 
@@ -32,7 +35,7 @@ export class AuthController {
   public async refreshToken(
     @CurrentUser('id', ParseIntPipe) userId: number,
     @Res({ passthrough: true }) res: Response,
-  ): Promise<string> {
+  ): Promise<{ accessToken: string }> {
     return this.authService.generateTokens(userId, res);
   }
 
@@ -51,7 +54,7 @@ export class AuthController {
   public async googleCallback(
     @Req() req: Request & { user: { _json: { email: string } } },
     @Res({ passthrough: true }) res: Response,
-  ): Promise<string> {
+  ): Promise<{ accessToken: string }> {
     // eslint-disable-next-line no-underscore-dangle
     return this.authService.googleAuth(req.user._json.email, res);
   }

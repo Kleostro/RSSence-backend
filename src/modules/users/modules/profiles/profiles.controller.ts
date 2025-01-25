@@ -9,7 +9,7 @@ import { UpdateProfileDto } from './dto/update-profile.dto';
 import { ProfilesService } from './profiles.service';
 
 @UseGuards(JwtAccessGuard)
-@Controller('profile')
+@Controller('profiles')
 export class ProfilesController {
   constructor(private readonly profilesService: ProfilesService) {}
 
@@ -39,7 +39,7 @@ export class ProfilesController {
     return this.profilesService.deleteOne(userId);
   }
 
-  @Get('username-check')
+  @Post('username-check')
   public async checkAvailableUsername(@Body() { username }: CheckUsernameDto): Promise<boolean> {
     return this.profilesService.checkAvailableUsername(username);
   }

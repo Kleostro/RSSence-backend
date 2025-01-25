@@ -22,7 +22,7 @@ model Profile {
   avatarUrl String?   @map("avatar_url")
   birthdate DateTime?
 
-  user   User @relation(fields: [userId], references: [id])
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId Int  @unique
 
   @@map("profiles")

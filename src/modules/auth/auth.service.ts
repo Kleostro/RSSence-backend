@@ -51,6 +51,10 @@ export class AuthService {
     return this.generateTokens(createdUser.id, res);
   }
 
+  public async changePassword(email: string, changeLink: string): Promise<void> {
+    return this.emailService.sendPasswordChangePasswordInstructions(email, changeLink);
+  }
+
   public async validateUser(email: string, pass: string): Promise<User | null> {
     const user = await this.usersService.getOne({ email: normalizeEmail(email) });
 

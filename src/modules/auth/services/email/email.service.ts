@@ -3,6 +3,7 @@ import { MailerService } from '@nestjs-modules/mailer';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
+import { getChangePasswordLayout } from './utils/change-password';
 import { getWelcomeLayout } from './utils/welcome';
 
 interface EmailData {
@@ -38,11 +39,11 @@ export class EmailService {
     });
   }
 
-  public async sendPasswordResetInstructions(email: string): Promise<void> {
+  public async sendPasswordChangePasswordInstructions(email: string, changeLink: string): Promise<void> {
     await this.sendEmail({
       to: email,
-      subject: EMAIL_SUBJECT.RESET_PASSWORD,
-      text: 'To reset your password, please follow the instructions provided in the link.',
+      subject: EMAIL_SUBJECT.CHANGE_PASSWORD,
+      html: getChangePasswordLayout(changeLink),
     });
   }
 }

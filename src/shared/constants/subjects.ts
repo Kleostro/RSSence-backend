@@ -1,4 +1,4 @@
 export const EMAIL_SUBJECT = {
   WELCOME: 'Welcome to RSSence',
-  RESET_PASSWORD: 'Password Reset Instructions',
+  CHANGE_PASSWORD: 'Password Change Instructions',
 } as const;

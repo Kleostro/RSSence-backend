@@ -58,4 +58,9 @@ export class AuthController {
     // eslint-disable-next-line no-underscore-dangle
     return this.authService.googleAuth(req.user._json.email, res);
   }
+
+  @Post('change-password')
+  public async changePassword(@Body() { email, changeLink }: { email: string; changeLink: string }): Promise<void> {
+    return this.authService.changePassword(email, changeLink);
+  }
 }

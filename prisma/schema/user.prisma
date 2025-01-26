@@ -2,7 +2,7 @@ model User {
   id Int @id @default(autoincrement())
 
   email          String  @unique
-  hashedPassword String? @map("hashed_password")
+  hashedPassword String @map("hashed_password")
 
   status UserStatus @default(offline)
 

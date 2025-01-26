@@ -6,6 +6,7 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { GoogleGuard } from './guards/google.guard';
 import { JwtAccessGuard } from './guards/jwt-access.guard';
+import { EmailService } from './services/email/email.service';
 import { PasswordService } from './services/password/password.service';
 import { GoogleStrategy } from './strategies/google.strategy';
 import { JwtAccessStrategy } from './strategies/jwt-access.strategy';
@@ -24,6 +25,7 @@ import { LocalStrategy } from './strategies/local.strategy';
     JwtAccessGuard,
     JwtAccessStrategy,
     PasswordService,
+    EmailService,
   ],
 })
 export class AuthModule {}

@@ -51,11 +51,11 @@ export class UsersService {
   }
 
   public async checkAvailableEmail(email: string): Promise<boolean> {
-    const result = await this.prisma.user.findFirst({ where: { email } });
+    const result = await this.prisma.user.findFirst({ where: { email: normalizeEmail(email) } });
     return !result;
   }
 
-  private async isEmailExist(email = ''): Promise<boolean> {
+  public async isEmailExist(email = ''): Promise<boolean> {
     const result = Boolean(await this.prisma.user.findUnique({ where: { email: normalizeEmail(email) } }));
 
     if (result) {

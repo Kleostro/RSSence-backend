@@ -27,6 +27,7 @@ export class AuthService {
   ) {}
 
   public async register({ email, password }: RegisterDto, res: Response): Promise<{ accessToken: string }> {
+    await this.usersService.isEmailExist(email);
     const hashedPassword = await this.passwordService.hash(password);
 
     const createdUser = await this.usersService.createOne({ email: normalizeEmail(email), hashedPassword });

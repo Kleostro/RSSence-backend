@@ -5,25 +5,21 @@ import { UsersModule } from '../users/users.module';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { GoogleGuard } from './guards/google.guard';
-import { JwtAccessGuard } from './guards/jwt-access.guard';
 import { EmailService } from './services/email/email.service';
 import { PasswordService } from './services/password/password.service';
 import { GoogleStrategy } from './strategies/google.strategy';
 import { JwtAccessStrategy } from './strategies/jwt-access.strategy';
 import { JwtRefreshStrategy } from './strategies/jwt-refresh.strategy';
-import { LocalStrategy } from './strategies/local.strategy';
 
 @Module({
   imports: [UsersModule, JwtModule.register({})],
   controllers: [AuthController],
   providers: [
     AuthService,
-    LocalStrategy,
     JwtRefreshStrategy,
+    JwtAccessStrategy,
     GoogleGuard,
     GoogleStrategy,
-    JwtAccessGuard,
-    JwtAccessStrategy,
     PasswordService,
     EmailService,
   ],

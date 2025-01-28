@@ -1,20 +1,11 @@
 import { Request, Response } from 'express';
 
 import { CurrentUser } from '@/shared/decorators/current-user.decorator';
-import { Body, Controller, Get, ParseIntPipe, Post, Req, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, ParseIntPipe, Patch, Post, Req, Res, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiTags } from '@nestjs/swagger';
 
-import {
-  ApiChangePassword,
-  ApiGoogleAuth,
-  ApiGoogleCallback,
-  ApiLogin,
-  ApiLogout,
-  ApiRefreshToken,
-  ApiRegister,
-  ApiResetPassword,
-} from './auth-controller-swagger.decorators';
+import * as authSwagger from './auth-controller-swagger.decorators';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { GoogleGuard } from './guards/google.guard';
@@ -24,7 +15,7 @@ import { GoogleGuard } from './guards/google.guard';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @ApiRegister()
+  @authSwagger.ApiRegister()
   @Post('register')
   public async register(
     @Body() dto: RegisterDto,
@@ -33,7 +24,7 @@ export class AuthController {
     return this.authService.register(dto, res);
   }
 
-  @ApiLogin()
+  @authSwagger.ApiLogin()
   @Post('login')
   public async login(
     @Body() dto: RegisterDto,
@@ -42,7 +33,7 @@ export class AuthController {
     return this.authService.login(dto, res);
   }
 
-  @ApiRefreshToken()
+  @authSwagger.ApiRefreshToken()
   @UseGuards(AuthGuard('jwt-refresh'))
   @Post('refresh')
   public async refreshToken(
@@ -52,7 +43,7 @@ export class AuthController {
     return this.authService.generateTokens(userId, res);
   }
 
-  @ApiLogout()
+  @authSwagger.ApiLogout()
   @UseGuards(AuthGuard('jwt-access'))
   @Post('logout')
   public logout(@Res({ passthrough: true }) res: Response): { message: string } {
@@ -60,12 +51,12 @@ export class AuthController {
     return { message: 'Successfully logged out the user' };
   }
 
-  @ApiGoogleAuth()
+  @authSwagger.ApiGoogleAuth()
   @UseGuards(GoogleGuard)
   @Get('google')
   public googleAuth(): void {}
 
-  @ApiGoogleCallback()
+  @authSwagger.ApiGoogleCallback()
   @UseGuards(GoogleGuard)
   @Get('google/callback')
   public async googleCallback(
@@ -76,14 +67,14 @@ export class AuthController {
     return this.authService.googleAuth(req.user._json.email, res);
   }
 
-  @ApiChangePassword()
+  @authSwagger.ApiChangePassword()
   @Post('change-password')
   public async changePassword(@Body() { email }: { email: string }): Promise<void> {
     return this.authService.requestPasswordChange(email);
   }
 
-  @ApiResetPassword()
-  @Post('reset-password')
+  @authSwagger.ApiResetPassword()
+  @Patch('reset-password')
   public async resetPassword(@Body() { token, newPassword }: { token: string; newPassword: string }): Promise<void> {
     return this.authService.resetPassword(token, newPassword);
   }

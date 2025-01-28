@@ -1,5 +1,4 @@
 import { PrismaService } from '@/prisma.service';
-import { normalizeEmail } from '@/shared/utils/normalizeEmail';
 import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { User } from '@prisma/client';
 
@@ -11,20 +10,22 @@ import { UpdateUserDto } from './dto/update-user.dto';
 export class UsersService {
   constructor(private readonly prisma: PrismaService) {}
 
-  public async getOne({ id, email }: GetUserDto): Promise<User | null> {
+  public async getOne({ id, email }: GetUserDto): Promise<User> {
     if (!id && !email) {
       throw new BadRequestException();
     }
 
     const user = await this.prisma.user.findFirst({ where: { id, email } });
 
+    if (!user) {
+      throw new NotFoundException();
+    }
+
     return user;
   }
 
   public async createOne({ email, hashedPassword }: CreateUserDto): Promise<User> {
-    if (hashedPassword) {
-      await this.isEmailExist(email);
-    }
+    await this.isEmailExist(email);
 
     const user = await this.prisma.user.create({ data: { email, hashedPassword } });
     return user;
@@ -51,12 +52,12 @@ export class UsersService {
   }
 
   public async checkAvailableEmail(email: string): Promise<boolean> {
-    const result = await this.prisma.user.findFirst({ where: { email: normalizeEmail(email) } });
+    const result = await this.prisma.user.findFirst({ where: { email } });
     return !result;
   }
 
   public async isEmailExist(email = ''): Promise<boolean> {
-    const result = Boolean(await this.prisma.user.findUnique({ where: { email: normalizeEmail(email) } }));
+    const result = Boolean(await this.prisma.user.findUnique({ where: { email } }));
 
     if (result) {
       throw new ConflictException('Email already exist!');

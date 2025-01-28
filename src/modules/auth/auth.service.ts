@@ -1,7 +1,6 @@
 import { Response } from 'express';
 
 import { JwtPayloadType } from '@/shared/types/jwt-payload';
-import { normalizeEmail } from '@/shared/utils/normalizeEmail';
 import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
@@ -34,7 +33,7 @@ export class AuthService {
     await this.usersService.isEmailExist(email);
     const hashedPassword = await this.passwordService.hash(password);
 
-    const createdUser = await this.usersService.createOne({ email: normalizeEmail(email), hashedPassword });
+    const createdUser = await this.usersService.createOne({ email, hashedPassword });
 
     return this.generateTokens(createdUser.id, res);
   }
@@ -53,7 +52,7 @@ export class AuthService {
   }
 
   public async googleAuth(email: string, res: Response): Promise<{ accessToken: string; refreshToken: string }> {
-    const normalizedEmail = normalizeEmail(email);
+    const normalizedEmail = email;
     const user = await this.usersService.getOne({ email: normalizedEmail });
 
     if (user) {
@@ -70,7 +69,7 @@ export class AuthService {
   }
 
   public async requestPasswordChange(email: string): Promise<void> {
-    const user = await this.usersService.getOne({ email: normalizeEmail(email) });
+    const user = await this.usersService.getOne({ email });
     if (!user) {
       throw new NotFoundException('User not found');
     }
@@ -106,7 +105,7 @@ export class AuthService {
   }
 
   public async validateUser(email: string, pass: string): Promise<User | null> {
-    const user = await this.usersService.getOne({ email: normalizeEmail(email) });
+    const user = await this.usersService.getOne({ email });
 
     if (!user) {
       return null;

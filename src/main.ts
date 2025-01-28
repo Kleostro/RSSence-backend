@@ -20,7 +20,18 @@ async function bootstrap(): Promise<void> {
     .setTitle('RSSence')
     .setDescription('API documentation for RSSence')
     .setVersion('1.0')
+    .addSecurity('cookieAuth', {
+      type: 'apiKey',
+      in: 'cookie',
+      name: 'refreshToken',
+    })
+    .addSecurity('bearer', {
+      type: 'http',
+      scheme: 'bearer',
+      bearerFormat: 'JWT',
+    })
     .build();
+
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('docs', app, document);
 

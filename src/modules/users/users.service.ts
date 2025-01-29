@@ -2,7 +2,6 @@ import { PrismaService } from '@/prisma.service';
 import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { User } from '@prisma/client';
 
-import { CreateUserDto } from './dto/create-user.dto';
 import { GetUserDto } from './dto/get-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 
@@ -24,7 +23,7 @@ export class UsersService {
     return user;
   }
 
-  public async createOne({ email, hashedPassword }: CreateUserDto): Promise<User> {
+  public async createOne({ email, hashedPassword }: { email: string; hashedPassword: string }): Promise<User> {
     await this.isEmailExist(email);
 
     const user = await this.prisma.user.create({ data: { email, hashedPassword } });

@@ -5,9 +5,12 @@ import { Body, Controller, Get, ParseIntPipe, Patch, Post, Req, Res, UseGuards }
 import { AuthGuard } from '@nestjs/passport';
 import { ApiTags } from '@nestjs/swagger';
 
+import { CheckEmailDto } from '../users/dto/check-email.dto';
 import * as authSwagger from './auth-controller-swagger.decorators';
 import { AuthService } from './auth.service';
-import { RegisterDto } from './dto/register.dto';
+import { AuthDto } from './dto/auth.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
+import { TokensDto } from './dto/tokens.dto';
 import { GoogleGuard } from './guards/google.guard';
 
 @ApiTags('Authentication')
@@ -17,19 +20,13 @@ export class AuthController {
 
   @authSwagger.ApiRegister()
   @Post('register')
-  public async register(
-    @Body() dto: RegisterDto,
-    @Res({ passthrough: true }) res: Response,
-  ): Promise<{ accessToken: string; refreshToken: string }> {
+  public async register(@Body() dto: AuthDto, @Res({ passthrough: true }) res: Response): Promise<TokensDto> {
     return this.authService.register(dto, res);
   }
 
   @authSwagger.ApiLogin()
   @Post('login')
-  public async login(
-    @Body() dto: RegisterDto,
-    @Res({ passthrough: true }) res: Response,
-  ): Promise<{ accessToken: string; refreshToken: string }> {
+  public async login(@Body() dto: AuthDto, @Res({ passthrough: true }) res: Response): Promise<TokensDto> {
     return this.authService.login(dto, res);
   }
 
@@ -39,7 +36,7 @@ export class AuthController {
   public async refreshToken(
     @CurrentUser('id', ParseIntPipe) userId: number,
     @Res({ passthrough: true }) res: Response,
-  ): Promise<{ accessToken: string; refreshToken: string }> {
+  ): Promise<TokensDto> {
     return this.authService.generateTokens(userId, res);
   }
 
@@ -62,20 +59,20 @@ export class AuthController {
   public async googleCallback(
     @Req() req: Request & { user: { _json: { email: string } } },
     @Res({ passthrough: true }) res: Response,
-  ): Promise<{ accessToken: string; refreshToken: string }> {
+  ): Promise<TokensDto> {
     // eslint-disable-next-line no-underscore-dangle
     return this.authService.googleAuth(req.user._json.email, res);
   }
 
   @authSwagger.ApiChangePassword()
   @Post('change-password')
-  public async changePassword(@Body() { email }: { email: string }): Promise<void> {
+  public async changePassword(@Body() { email }: CheckEmailDto): Promise<void> {
     return this.authService.requestPasswordChange(email);
   }
 
   @authSwagger.ApiResetPassword()
   @Patch('reset-password')
-  public async resetPassword(@Body() { token, newPassword }: { token: string; newPassword: string }): Promise<void> {
-    return this.authService.resetPassword(token, newPassword);
+  public async resetPassword(@Body() dto: ResetPasswordDto): Promise<void> {
+    return this.authService.resetPassword(dto);
   }
 }

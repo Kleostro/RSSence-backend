@@ -1,27 +1,10 @@
 import { applyDecorators, HttpStatus } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiCookieAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
 
-const EMAIL_PROPS = {
-  type: 'string',
-  name: 'email',
-  example: 'john_doe@gmail.com',
-  description: 'The email address of the user.',
-};
-
-const PASSWORD_PROPS = {
-  type: 'string',
-  name: 'password',
-  example: 'password',
-  description: 'The password for the user account.',
-};
-
-const TOKENS_SCHEMA = {
-  type: 'object',
-  properties: {
-    accessToken: { type: 'string', example: 'your_jwt_access_token_here' },
-    refreshToken: { type: 'string', example: 'your_jwt_refresh_token_here' },
-  },
-};
+import { CheckEmailDto } from '../users/dto/check-email.dto';
+import { AuthDto } from './dto/auth.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
+import { TokensDto } from './dto/tokens.dto';
 
 export function ApiRegister(): MethodDecorator {
   return applyDecorators(
@@ -31,18 +14,12 @@ export function ApiRegister(): MethodDecorator {
     }),
     ApiBody({
       required: true,
-      schema: {
-        type: 'object',
-        properties: {
-          email: EMAIL_PROPS,
-          password: PASSWORD_PROPS,
-        },
-      },
+      type: AuthDto,
     }),
     ApiResponse({
       status: HttpStatus.CREATED,
       description: 'Returns an access and refresh tokens upon successful registration.',
-      schema: TOKENS_SCHEMA,
+      type: TokensDto,
     }),
     ApiResponse({
       status: HttpStatus.BAD_REQUEST,
@@ -63,18 +40,12 @@ export function ApiLogin(): MethodDecorator {
     }),
     ApiBody({
       required: true,
-      schema: {
-        type: 'object',
-        properties: {
-          email: EMAIL_PROPS,
-          password: PASSWORD_PROPS,
-        },
-      },
+      type: AuthDto,
     }),
     ApiResponse({
       status: HttpStatus.CREATED,
       description: 'Returns an access and refresh tokens upon successful login.',
-      schema: TOKENS_SCHEMA,
+      type: TokensDto,
     }),
     ApiResponse({
       status: HttpStatus.NOT_FOUND,
@@ -93,7 +64,7 @@ export function ApiRefreshToken(): MethodDecorator {
     ApiResponse({
       status: HttpStatus.OK,
       description: 'Returns a new access and refresh tokens upon successful refresh.',
-      schema: TOKENS_SCHEMA,
+      type: TokensDto,
     }),
     ApiResponse({
       status: HttpStatus.UNAUTHORIZED,
@@ -139,7 +110,7 @@ export function ApiGoogleCallback(): MethodDecorator {
     ApiResponse({
       status: HttpStatus.OK,
       description: 'Returns an access and refresh tokens upon successful Google authentication.',
-      schema: TOKENS_SCHEMA,
+      type: TokensDto,
     }),
     ApiResponse({
       status: HttpStatus.UNAUTHORIZED,
@@ -156,16 +127,15 @@ export function ApiChangePassword(): MethodDecorator {
     }),
     ApiBody({
       required: true,
-      schema: {
-        type: 'object',
-        properties: {
-          email: { type: 'string', example: 'john_doe@gmail.com' },
-        },
-      },
+      type: CheckEmailDto,
     }),
     ApiResponse({
       status: HttpStatus.CREATED,
       description: 'Successfully initiated password change process.',
+    }),
+    ApiResponse({
+      status: HttpStatus.BAD_REQUEST,
+      description: 'Bad request. The data provided is invalid.',
     }),
     ApiResponse({
       status: HttpStatus.NOT_FOUND,
@@ -182,17 +152,15 @@ export function ApiResetPassword(): MethodDecorator {
     }),
     ApiBody({
       required: true,
-      schema: {
-        type: 'object',
-        properties: {
-          token: { type: 'string', example: 'unique_token_here' },
-          newPassword: { type: 'string', example: 'new_password' },
-        },
-      },
+      type: ResetPasswordDto,
     }),
     ApiResponse({
-      status: HttpStatus.CREATED,
+      status: HttpStatus.OK,
       description: 'Successful password change.',
+    }),
+    ApiResponse({
+      status: HttpStatus.BAD_REQUEST,
+      description: 'Bad request. The data provided is invalid.',
     }),
     ApiResponse({
       status: HttpStatus.UNAUTHORIZED,

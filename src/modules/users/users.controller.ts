@@ -6,7 +6,7 @@ import { User } from '@prisma/client';
 
 import { CheckEmailDto } from './dto/check-email.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import * as usersSwagger from './users-controller-swagger.decorators';
+import * as usersController from './users-controller-swagger.decorators';
 import { UsersService } from './users.service';
 
 @ApiTags('User')
@@ -14,28 +14,28 @@ import { UsersService } from './users.service';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @usersSwagger.ApiGetAllUsers()
+  @usersController.ApiGetAllUsers()
   @UseGuards(AuthGuard('jwt-access'))
   @Get()
   public async getAll(): Promise<User[]> {
     return this.usersService.getAll();
   }
 
-  @usersSwagger.ApiGetCurrentUser()
+  @usersController.ApiGetCurrentUser()
   @UseGuards(AuthGuard('jwt-access'))
   @Get('current-user')
   public async getCurrentUser(@CurrentUser('id', ParseIntPipe) id: number): Promise<User> {
     return this.usersService.getOne({ id });
   }
 
-  @usersSwagger.ApiGetOneUser()
+  @usersController.ApiGetOneUser()
   @UseGuards(AuthGuard('jwt-access'))
   @Get(':id')
   public async getOne(@Param('id', ParseIntPipe) id: number): Promise<User> {
     return this.usersService.getOne({ id });
   }
 
-  @usersSwagger.ApiUpdateCurrentUser()
+  @usersController.ApiUpdateCurrentUser()
   @UseGuards(AuthGuard('jwt-access'))
   @Patch('current-user')
   public async updateCurrentUser(
@@ -45,7 +45,7 @@ export class UsersController {
     return this.usersService.updateOne(updateUserDto, userId);
   }
 
-  @usersSwagger.ApiUpdateOneUser()
+  @usersController.ApiUpdateOneUser()
   @UseGuards(AuthGuard('jwt-access'))
   @Patch(':id')
   public async updateOne(
@@ -55,28 +55,28 @@ export class UsersController {
     return this.usersService.updateOne(updateUserDto, id);
   }
 
-  @usersSwagger.ApiDeleteAllUsers()
+  @usersController.ApiDeleteAllUsers()
   @UseGuards(AuthGuard('jwt-access'))
   @Delete()
   public async deleteAll(): Promise<unknown> {
     return this.usersService.deleteAll();
   }
 
-  @usersSwagger.ApiDeleteCurrentUser()
+  @usersController.ApiDeleteCurrentUser()
   @UseGuards(AuthGuard('jwt-access'))
   @Delete('current-user')
   public async deleteCurrentUser(@CurrentUser('id', ParseIntPipe) userId: number): Promise<User> {
     return this.usersService.deleteOne(userId);
   }
 
-  @usersSwagger.ApiDeleteOneUser()
+  @usersController.ApiDeleteOneUser()
   @UseGuards(AuthGuard('jwt-access'))
   @Delete(':id')
   public async deleteOne(@Param('id', ParseIntPipe) id: number): Promise<User> {
     return this.usersService.deleteOne(id);
   }
 
-  @usersSwagger.ApiCheckAvailableEmail()
+  @usersController.ApiCheckAvailableEmail()
   @Post('email-check')
   public async checkAvailableEmail(@Body() { email }: CheckEmailDto): Promise<boolean> {
     return this.usersService.checkAvailableEmail(email);

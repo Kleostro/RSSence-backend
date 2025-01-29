@@ -1,7 +1,9 @@
 import { applyDecorators, HttpStatus } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiCookieAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
 
+import { CheckEmailDto } from '../users/dto/check-email.dto';
 import { AuthDto } from './dto/auth.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 import { TokensDto } from './dto/tokens.dto';
 
 export function ApiRegister(): MethodDecorator {
@@ -125,16 +127,15 @@ export function ApiChangePassword(): MethodDecorator {
     }),
     ApiBody({
       required: true,
-      schema: {
-        type: 'object',
-        properties: {
-          email: { type: 'string', example: 'john_doe@gmail.com' },
-        },
-      },
+      type: CheckEmailDto,
     }),
     ApiResponse({
       status: HttpStatus.CREATED,
       description: 'Successfully initiated password change process.',
+    }),
+    ApiResponse({
+      status: HttpStatus.BAD_REQUEST,
+      description: 'Bad request. The data provided is invalid.',
     }),
     ApiResponse({
       status: HttpStatus.NOT_FOUND,
@@ -151,17 +152,15 @@ export function ApiResetPassword(): MethodDecorator {
     }),
     ApiBody({
       required: true,
-      schema: {
-        type: 'object',
-        properties: {
-          token: { type: 'string', example: 'unique_token_here' },
-          newPassword: { type: 'string', example: 'new_password' },
-        },
-      },
+      type: ResetPasswordDto,
     }),
     ApiResponse({
       status: HttpStatus.OK,
       description: 'Successful password change.',
+    }),
+    ApiResponse({
+      status: HttpStatus.BAD_REQUEST,
+      description: 'Bad request. The data provided is invalid.',
     }),
     ApiResponse({
       status: HttpStatus.UNAUTHORIZED,

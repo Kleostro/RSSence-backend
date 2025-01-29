@@ -5,9 +5,11 @@ import { Body, Controller, Get, ParseIntPipe, Patch, Post, Req, Res, UseGuards }
 import { AuthGuard } from '@nestjs/passport';
 import { ApiTags } from '@nestjs/swagger';
 
+import { CheckEmailDto } from '../users/dto/check-email.dto';
 import * as authSwagger from './auth-controller-swagger.decorators';
 import { AuthService } from './auth.service';
 import { AuthDto } from './dto/auth.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 import { TokensDto } from './dto/tokens.dto';
 import { GoogleGuard } from './guards/google.guard';
 
@@ -64,13 +66,13 @@ export class AuthController {
 
   @authSwagger.ApiChangePassword()
   @Post('change-password')
-  public async changePassword(@Body() { email }: { email: string }): Promise<void> {
+  public async changePassword(@Body() { email }: CheckEmailDto): Promise<void> {
     return this.authService.requestPasswordChange(email);
   }
 
   @authSwagger.ApiResetPassword()
   @Patch('reset-password')
-  public async resetPassword(@Body() { token, newPassword }: { token: string; newPassword: string }): Promise<void> {
-    return this.authService.resetPassword(token, newPassword);
+  public async resetPassword(@Body() dto: ResetPasswordDto): Promise<void> {
+    return this.authService.resetPassword(dto);
   }
 }

@@ -8,6 +8,7 @@ import { User } from '@prisma/client';
 
 import { UsersService } from '../users/users.service';
 import { AuthDto } from './dto/auth.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 import { TokensDto } from './dto/tokens.dto';
 import { EmailService } from './services/email/email.service';
 import { PasswordService } from './services/password/password.service';
@@ -69,23 +70,15 @@ export class AuthService {
       throw new NotFoundException('User not found');
     }
 
-    const token = await this.generatePasswordResetToken(user.id);
+    const token = await this.generateToken(user.id, 'JWT_PASSWORD_RESET_SECRET', 'JWT_PASSWORD_RESET_EXPIRES');
     await this.emailService.sendPasswordChangeInstructions(email, token);
   }
 
-  public async resetPassword(token: string, newPassword: string): Promise<void> {
-    const userId = await this.validatePasswordResetToken(token);
+  public async resetPassword({ passwordResetToken, newPassword }: ResetPasswordDto): Promise<void> {
+    const userId = await this.validatePasswordResetToken(passwordResetToken);
     const hashedPassword = await this.passwordService.hash(newPassword);
 
     await this.usersService.updateOne({ hashedPassword }, +userId);
-  }
-
-  private async generatePasswordResetToken(userId: number): Promise<string> {
-    const payload = { userId };
-    return this.jwt.signAsync(payload, {
-      secret: this.config.getOrThrow('JWT_PASSWORD_RESET_SECRET'),
-      expiresIn: this.config.getOrThrow('JWT_PASSWORD_RESET_EXPIRES'),
-    });
   }
 
   private async validatePasswordResetToken(token: string): Promise<string> {

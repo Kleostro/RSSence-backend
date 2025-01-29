@@ -1,12 +1,8 @@
 import { applyDecorators, HttpStatus } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
 
-const EMAIL_SCHEMA = {
-  type: 'object',
-  properties: {
-    email: { type: 'string', example: 'john_doe@example.com' },
-  },
-};
+import { CheckEmailDto } from './dto/check-email.dto';
+import { UserDto } from './dto/user.dto';
 
 export function ApiGetAllUsers(): MethodDecorator {
   return applyDecorators(
@@ -18,6 +14,7 @@ export function ApiGetAllUsers(): MethodDecorator {
     ApiResponse({
       status: HttpStatus.OK,
       description: 'Returns a list of all users.',
+      type: [UserDto],
     }),
     ApiResponse({
       status: HttpStatus.UNAUTHORIZED,
@@ -36,6 +33,7 @@ export function ApiGetCurrentUser(): MethodDecorator {
     ApiResponse({
       status: HttpStatus.OK,
       description: 'Returns a current user.',
+      type: UserDto,
     }),
     ApiResponse({
       status: HttpStatus.UNAUTHORIZED,
@@ -60,6 +58,7 @@ export function ApiGetOneUser(): MethodDecorator {
     ApiResponse({
       status: HttpStatus.OK,
       description: 'Returns the user with the specified ID.',
+      type: UserDto,
     }),
     ApiResponse({
       status: HttpStatus.NOT_FOUND,
@@ -80,12 +79,16 @@ export function ApiUpdateCurrentUser(): MethodDecorator {
     }),
     ApiBearerAuth('bearer'),
     ApiBody({
-      required: true,
-      schema: EMAIL_SCHEMA,
+      required: false,
+      type: UserDto,
     }),
     ApiResponse({
       status: HttpStatus.OK,
       description: 'Returns the updated current user.',
+    }),
+    ApiResponse({
+      status: HttpStatus.CONFLICT,
+      description: 'Conflict. Attempting to reuse unique data.',
     }),
     ApiResponse({
       status: HttpStatus.UNAUTHORIZED,
@@ -102,8 +105,8 @@ export function ApiUpdateOneUser(): MethodDecorator {
     }),
     ApiBearerAuth('bearer'),
     ApiBody({
-      required: true,
-      schema: EMAIL_SCHEMA,
+      required: false,
+      type: UserDto,
     }),
     ApiParam({
       name: 'id',
@@ -118,6 +121,10 @@ export function ApiUpdateOneUser(): MethodDecorator {
     ApiResponse({
       status: HttpStatus.NOT_FOUND,
       description: 'Not found. The user with the specified ID does not exist.',
+    }),
+    ApiResponse({
+      status: HttpStatus.CONFLICT,
+      description: 'Conflict. Attempting to reuse unique data.',
     }),
     ApiResponse({
       status: HttpStatus.UNAUTHORIZED,
@@ -198,7 +205,7 @@ export function ApiCheckAvailableEmail(): MethodDecorator {
     }),
     ApiBody({
       required: true,
-      schema: EMAIL_SCHEMA,
+      type: CheckEmailDto,
     }),
     ApiResponse({
       status: HttpStatus.OK,

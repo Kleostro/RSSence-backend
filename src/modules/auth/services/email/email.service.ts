@@ -39,11 +39,13 @@ export class EmailService {
     });
   }
 
-  public async sendPasswordChangePasswordInstructions(email: string, changeLink: string): Promise<void> {
+  public async sendPasswordChangeInstructions(email: string, token: string): Promise<void> {
+    const changeLink = `${this.configService.getOrThrow('FRONTEND_URL')}/reset-password?token=${token}`;
+    const htmlContent = getChangePasswordLayout(changeLink);
     await this.sendEmail({
       to: email,
       subject: EMAIL_SUBJECT.CHANGE_PASSWORD,
-      html: getChangePasswordLayout(changeLink),
+      html: htmlContent,
     });
   }
 }

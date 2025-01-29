@@ -1,7 +1,7 @@
 import { Response } from 'express';
 
-import { normalizeEmail } from '@/shared/utils/normalizeEmail';
-import { Injectable } from '@nestjs/common';
+import { JwtPayloadType } from '@/shared/types/jwt-payload';
+import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { User } from '@prisma/client';
@@ -26,17 +26,33 @@ export class AuthService {
     private readonly config: ConfigService,
   ) {}
 
-  public async register({ email, password }: RegisterDto, res: Response): Promise<{ accessToken: string }> {
+  public async register(
+    { email, password }: RegisterDto,
+    res: Response,
+  ): Promise<{ accessToken: string; refreshToken: string }> {
     await this.usersService.isEmailExist(email);
     const hashedPassword = await this.passwordService.hash(password);
 
-    const createdUser = await this.usersService.createOne({ email: normalizeEmail(email), hashedPassword });
+    const createdUser = await this.usersService.createOne({ email, hashedPassword });
 
     return this.generateTokens(createdUser.id, res);
   }
 
-  public async googleAuth(email: string, res: Response): Promise<{ accessToken: string }> {
-    const normalizedEmail = normalizeEmail(email);
+  public async login(
+    { email, password }: RegisterDto,
+    res: Response,
+  ): Promise<{ accessToken: string; refreshToken: string }> {
+    const user = await this.validateUser(email, password);
+
+    if (!user) {
+      throw new NotFoundException();
+    }
+
+    return this.generateTokens(user.id, res);
+  }
+
+  public async googleAuth(email: string, res: Response): Promise<{ accessToken: string; refreshToken: string }> {
+    const normalizedEmail = email;
     const user = await this.usersService.getOne({ email: normalizedEmail });
 
     if (user) {
@@ -52,12 +68,44 @@ export class AuthService {
     return this.generateTokens(createdUser.id, res);
   }
 
-  public async changePassword(email: string, changeLink: string): Promise<void> {
-    return this.emailService.sendPasswordChangePasswordInstructions(email, changeLink);
+  public async requestPasswordChange(email: string): Promise<void> {
+    const user = await this.usersService.getOne({ email });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const token = await this.generatePasswordResetToken(user.id);
+    await this.emailService.sendPasswordChangeInstructions(email, token);
+  }
+
+  public async resetPassword(token: string, newPassword: string): Promise<void> {
+    const userId = await this.validatePasswordResetToken(token);
+    const hashedPassword = await this.passwordService.hash(newPassword);
+
+    await this.usersService.updateOne({ hashedPassword }, +userId);
+  }
+
+  private async generatePasswordResetToken(userId: number): Promise<string> {
+    const payload = { userId };
+    return this.jwt.signAsync(payload, {
+      secret: this.config.getOrThrow('JWT_PASSWORD_RESET_SECRET'),
+      expiresIn: this.config.getOrThrow('JWT_PASSWORD_RESET_EXPIRES'),
+    });
+  }
+
+  private async validatePasswordResetToken(token: string): Promise<string> {
+    try {
+      const payload = await this.jwt.verifyAsync<JwtPayloadType>(token, {
+        secret: this.config.getOrThrow('JWT_PASSWORD_RESET_SECRET'),
+      });
+      return payload.userId;
+    } catch (error) {
+      throw new UnauthorizedException('Invalid or expired token');
+    }
   }
 
   public async validateUser(email: string, pass: string): Promise<User | null> {
-    const user = await this.usersService.getOne({ email: normalizeEmail(email) });
+    const user = await this.usersService.getOne({ email });
 
     if (!user) {
       return null;
@@ -68,7 +116,7 @@ export class AuthService {
     return isPasswordValid ? user : null;
   }
 
-  public async generateTokens(userId: number, res: Response): Promise<{ accessToken: string }> {
+  public async generateTokens(userId: number, res: Response): Promise<{ accessToken: string; refreshToken: string }> {
     const [accessToken, refreshToken] = await Promise.all([
       this.generateToken(userId, 'JWT_ACCESS_SECRET', 'JWT_ACCESS_EXPIRES'),
       this.generateToken(userId, 'JWT_REFRESH_SECRET', 'JWT_REFRESH_EXPIRES'),
@@ -76,7 +124,7 @@ export class AuthService {
 
     res.cookie('refreshToken', refreshToken, this.ACCESS_TOKEN_OPTIONS);
 
-    return { accessToken };
+    return { accessToken, refreshToken };
   }
 
   private async generateToken(userId: number, secretKey: string, expiresKey: string): Promise<string> {

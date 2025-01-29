@@ -1,14 +1,14 @@
 import { CurrentUser } from '@/shared/decorators/current-user.decorator';
 import { Body, Controller, Delete, Get, ParseIntPipe, Patch, Post, UseGuards } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
 import { Profile } from '@prisma/client';
 
-import { JwtAccessGuard } from '../../../auth/guards/jwt-access.guard';
 import { CheckUsernameDto } from './dto/check-username';
 import { CreateProfileDto } from './dto/create-profile.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { ProfilesService } from './profiles.service';
 
-@UseGuards(JwtAccessGuard)
+@UseGuards(AuthGuard('jwt-access'))
 @Controller('profiles')
 export class ProfilesController {
   constructor(private readonly profilesService: ProfilesService) {}

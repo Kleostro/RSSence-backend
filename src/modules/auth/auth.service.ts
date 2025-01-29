@@ -7,7 +7,8 @@ import { JwtService } from '@nestjs/jwt';
 import { User } from '@prisma/client';
 
 import { UsersService } from '../users/users.service';
-import { RegisterDto } from './dto/register.dto';
+import { AuthDto } from './dto/auth.dto';
+import { TokensDto } from './dto/tokens.dto';
 import { EmailService } from './services/email/email.service';
 import { PasswordService } from './services/password/password.service';
 
@@ -26,10 +27,7 @@ export class AuthService {
     private readonly config: ConfigService,
   ) {}
 
-  public async register(
-    { email, password }: RegisterDto,
-    res: Response,
-  ): Promise<{ accessToken: string; refreshToken: string }> {
+  public async register({ email, password }: AuthDto, res: Response): Promise<TokensDto> {
     await this.usersService.isEmailExist(email);
     const hashedPassword = await this.passwordService.hash(password);
 
@@ -38,10 +36,7 @@ export class AuthService {
     return this.generateTokens(createdUser.id, res);
   }
 
-  public async login(
-    { email, password }: RegisterDto,
-    res: Response,
-  ): Promise<{ accessToken: string; refreshToken: string }> {
+  public async login({ email, password }: AuthDto, res: Response): Promise<TokensDto> {
     const user = await this.validateUser(email, password);
 
     if (!user) {
@@ -51,7 +46,7 @@ export class AuthService {
     return this.generateTokens(user.id, res);
   }
 
-  public async googleAuth(email: string, res: Response): Promise<{ accessToken: string; refreshToken: string }> {
+  public async googleAuth(email: string, res: Response): Promise<TokensDto> {
     const normalizedEmail = email;
     const user = await this.usersService.getOne({ email: normalizedEmail });
 
@@ -116,7 +111,7 @@ export class AuthService {
     return isPasswordValid ? user : null;
   }
 
-  public async generateTokens(userId: number, res: Response): Promise<{ accessToken: string; refreshToken: string }> {
+  public async generateTokens(userId: number, res: Response): Promise<TokensDto> {
     const [accessToken, refreshToken] = await Promise.all([
       this.generateToken(userId, 'JWT_ACCESS_SECRET', 'JWT_ACCESS_EXPIRES'),
       this.generateToken(userId, 'JWT_REFRESH_SECRET', 'JWT_REFRESH_EXPIRES'),

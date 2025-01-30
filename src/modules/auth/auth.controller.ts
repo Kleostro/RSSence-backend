@@ -30,14 +30,14 @@ export class AuthController {
     return this.authService.login(dto, res);
   }
 
-  @authSwagger.ApiRefreshToken()
+  @authSwagger.ApiRefreshTokens()
   @UseGuards(AuthGuard('jwt-refresh'))
   @Post('refresh')
-  public async refreshToken(
+  public async refreshTokens(
     @CurrentUser('id', ParseIntPipe) userId: number,
     @Res({ passthrough: true }) res: Response,
   ): Promise<TokensDto> {
-    return this.authService.generateTokens(userId, res);
+    return this.authService.refreshTokens(userId, res);
   }
 
   @authSwagger.ApiLogout()

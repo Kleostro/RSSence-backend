@@ -54,11 +54,11 @@ export function ApiLogin(): MethodDecorator {
   );
 }
 
-export function ApiRefreshToken(): MethodDecorator {
+export function ApiRefreshTokens(): MethodDecorator {
   return applyDecorators(
     ApiOperation({
-      summary: 'Refresh access token',
-      description: 'Refreshes the access token using a refresh token.',
+      summary: 'Refresh access and refresh tokens',
+      description: 'Refreshes the access and refresh tokens using a refresh token.',
     }),
     ApiCookieAuth('refreshToken'),
     ApiResponse({

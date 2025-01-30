@@ -7,6 +7,7 @@ import { AuthService } from './auth.service';
 import { GoogleGuard } from './guards/google.guard';
 import { EmailService } from './services/email/email.service';
 import { PasswordService } from './services/password/password.service';
+import { TokenService } from './services/token/token.service';
 import { GoogleStrategy } from './strategies/google.strategy';
 import { JwtAccessStrategy } from './strategies/jwt-access.strategy';
 import { JwtRefreshStrategy } from './strategies/jwt-refresh.strategy';
@@ -22,6 +23,7 @@ import { JwtRefreshStrategy } from './strategies/jwt-refresh.strategy';
     GoogleStrategy,
     PasswordService,
     EmailService,
+    TokenService,
   ],
 })
 export class AuthModule {}

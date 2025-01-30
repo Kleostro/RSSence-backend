@@ -1,0 +1,10 @@
+export const ERROR_MESSAGES = {
+  USER_NOT_FOUND: 'User not found',
+  USER_UNAUTHORIZED: 'User unauthorized',
+  INVALID_CREDENTIALS: 'Invalid credentials',
+  INVALID_OR_EXPIRED_TOKEN: 'Invalid or expired token',
+  EMAIL_EXISTS: 'Email already exists',
+  PROFILE_NOT_FOUND: 'Profile not found',
+  PROFILE_EXISTS: 'Profile already exists',
+  USERNAME_EXISTS: 'Username already exists',
+} as const;

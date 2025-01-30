@@ -1,3 +1,4 @@
+import { ERROR_MESSAGES } from '@/shared/constants/error-message';
 import { JwtPayloadType } from '@/shared/types/jwt-payload';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -32,7 +33,7 @@ export class TokenService {
       });
       return payload;
     } catch (error) {
-      throw new UnauthorizedException('Invalid or expired token');
+      throw new UnauthorizedException(ERROR_MESSAGES.INVALID_OR_EXPIRED_TOKEN);
     }
   }
 

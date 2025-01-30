@@ -1,5 +1,6 @@
 import { Response } from 'express';
 
+import { ERROR_MESSAGES } from '@/shared/constants/error-message';
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { User } from '@prisma/client';
 
@@ -65,7 +66,7 @@ export class AuthService {
     const user = await this.usersService.getOne({ email });
 
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException(ERROR_MESSAGES.USER_NOT_FOUND);
     }
 
     const passwordResetToken = await this.tokenService.generatePasswordResetToken(user.id);
@@ -82,11 +83,11 @@ export class AuthService {
     const user = await this.usersService.getOne({ email });
 
     if (!user) {
-      throw new NotFoundException();
+      throw new NotFoundException(ERROR_MESSAGES.USER_NOT_FOUND);
     }
 
     if (!(await this.passwordService.verify(pass, user.hashedPassword))) {
-      throw new BadRequestException();
+      throw new BadRequestException(ERROR_MESSAGES.INVALID_CREDENTIALS);
     }
 
     return user;

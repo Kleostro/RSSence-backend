@@ -1,6 +1,7 @@
 import { ExtractJwt, Strategy } from 'passport-jwt';
 
 import { UsersService } from '@/modules/users/users.service';
+import { ERROR_MESSAGES } from '@/shared/constants/error-message';
 import { JwtPayloadType } from '@/shared/types/jwt-payload';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -25,7 +26,7 @@ export class JwtAccessStrategy extends PassportStrategy(Strategy, 'jwt-access') 
     const user = await this.usersService.getOne({ id: Number(userId) });
 
     if (!user) {
-      throw new UnauthorizedException();
+      throw new UnauthorizedException(ERROR_MESSAGES.USER_UNAUTHORIZED);
     }
 
     return user;

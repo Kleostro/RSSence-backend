@@ -1,4 +1,5 @@
 import { PrismaService } from '@/prisma.service';
+import { ERROR_MESSAGES } from '@/shared/constants/error-message';
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { Profile } from '@prisma/client';
 
@@ -39,7 +40,7 @@ export class ProfilesService {
   private async ensureUsernameAvailable(username?: string): Promise<void> {
     const result = await this.checkAvailableUsername(username);
     if (!result) {
-      throw new ConflictException('Username already exist!');
+      throw new ConflictException(ERROR_MESSAGES.USERNAME_EXISTS);
     }
   }
 
@@ -51,14 +52,14 @@ export class ProfilesService {
   private async ensureProfileExists(userId: number): Promise<void> {
     const hasProfile = await this.hasProfile(userId);
     if (!hasProfile) {
-      throw new NotFoundException();
+      throw new NotFoundException(ERROR_MESSAGES.PROFILE_NOT_FOUND);
     }
   }
 
   private async ensureProfileDoesNotExist(userId: number): Promise<void> {
     const hasProfile = await this.hasProfile(userId);
     if (hasProfile) {
-      throw new ConflictException('Profile already exist!');
+      throw new ConflictException(ERROR_MESSAGES.PROFILE_EXISTS);
     }
   }
 }

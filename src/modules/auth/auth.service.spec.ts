@@ -8,6 +8,7 @@ import { UsersService } from '../users/users.service';
 import { AuthService } from './auth.service';
 import { EmailService } from './services/email/email.service';
 import { PasswordService } from './services/password/password.service';
+import { TokenService } from './services/token/token.service';
 
 describe('AuthService', () => {
   let service: AuthService;
@@ -23,6 +24,7 @@ describe('AuthService', () => {
         PasswordService,
         EmailService,
         MailerService,
+        TokenService,
         {
           name: MAILER_OPTIONS,
           provide: MAILER_OPTIONS,

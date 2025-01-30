@@ -1,4 +1,5 @@
 import { PrismaService } from '@/prisma.service';
+import { ERROR_MESSAGES } from '@/shared/constants/error-message';
 import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { User } from '@prisma/client';
 
@@ -11,13 +12,13 @@ export class UsersService {
 
   public async getOne({ id, email }: GetUserDto): Promise<User> {
     if (!id && !email) {
-      throw new BadRequestException();
+      throw new BadRequestException(ERROR_MESSAGES.INVALID_CREDENTIALS);
     }
 
     const user = await this.prisma.user.findFirst({ where: { id, email } });
 
     if (!user) {
-      throw new NotFoundException();
+      throw new NotFoundException(ERROR_MESSAGES.USER_NOT_FOUND);
     }
 
     return user;
@@ -59,7 +60,7 @@ export class UsersService {
     const result = Boolean(await this.prisma.user.findUnique({ where: { email } }));
 
     if (result) {
-      throw new ConflictException('Email already exist!');
+      throw new ConflictException(ERROR_MESSAGES.EMAIL_EXISTS);
     }
 
     return false;
@@ -73,7 +74,7 @@ export class UsersService {
   private async ensureUserExists(userId: number): Promise<void> {
     const hasUser = await this.hasUser(userId);
     if (!hasUser) {
-      throw new NotFoundException();
+      throw new NotFoundException(ERROR_MESSAGES.USER_NOT_FOUND);
     }
   }
 }

@@ -40,7 +40,7 @@ export class RolesService {
 
   public async addRoleToUser(userId: number, name: string): Promise<UserRole> {
     const role = await this.getOne({ name });
-    await this.hasUserRoleAlready(userId, role.id);
+    await this.userHasRole(userId, role.id);
     return this.prisma.userRole.create({ data: { userId, roleId: role.id } });
   }
 
@@ -64,16 +64,6 @@ export class RolesService {
     return result;
   }
 
-  public async hasUserRoleAlready(userId: number, roleId: number): Promise<null> {
-    const userRole = await this.hasUserRole(userId, roleId);
-
-    if (userRole) {
-      throw new ConflictException(ERROR_MESSAGES.USER_HAS_ROLE);
-    }
-
-    return null;
-  }
-
   public async deleteAll(): Promise<unknown> {
     return this.prisma.role.deleteMany();
   }
@@ -82,5 +72,15 @@ export class RolesService {
     const role = await this.getOne({ name });
     await this.prisma.userRole.deleteMany({ where: { roleId: role.id } });
     return this.prisma.role.delete({ where: { name } });
+  }
+
+  private async userHasRole(userId: number, roleId: number): Promise<null> {
+    const userRole = await this.hasUserRole(userId, roleId);
+
+    if (userRole) {
+      throw new ConflictException(ERROR_MESSAGES.USER_HAS_ROLE);
+    }
+
+    return null;
   }
 }

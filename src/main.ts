@@ -7,9 +7,14 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 import { AppModule } from './app/app.module';
 import { AllExceptionsFilter } from './core/filters/exception.filter';
+import { seedDatabase } from './core/seeds/seedDataBase.seed';
+import { PrismaService } from './prisma.service';
 
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule);
+  const prisma = app.get(PrismaService);
+  await seedDatabase(prisma);
+
   app.useWebSocketAdapter(new IoAdapter(app));
   app.useGlobalPipes(new ValidationPipe());
   app.useGlobalFilters(new AllExceptionsFilter());
@@ -43,4 +48,5 @@ async function bootstrap(): Promise<void> {
 
   await app.listen(3000);
 }
+
 bootstrap();

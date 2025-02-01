@@ -2,7 +2,6 @@ import { Request, Response } from 'express';
 
 import { CurrentUser } from '@/shared/decorators/current-user.decorator';
 import { Body, Controller, Get, ParseIntPipe, Patch, Post, Req, Res, UseGuards } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
 import { ApiTags } from '@nestjs/swagger';
 
 import { CheckEmailDto } from '../users/dto/check-email.dto';
@@ -12,6 +11,8 @@ import { AuthDto } from './dto/auth.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { TokensDto } from './dto/tokens.dto';
 import { GoogleGuard } from './guards/google.guard';
+import { JwtAccessGuard } from './guards/jwt-acess.guard';
+import { JwtRefreshGuard } from './guards/jwt-refresh.guard';
 
 @ApiTags('Authentication')
 @Controller('auth')
@@ -31,7 +32,7 @@ export class AuthController {
   }
 
   @authSwagger.ApiRefreshTokens()
-  @UseGuards(AuthGuard('jwt-refresh'))
+  @UseGuards(JwtRefreshGuard)
   @Post('refresh')
   public async refreshTokens(
     @CurrentUser('id', ParseIntPipe) userId: number,
@@ -41,7 +42,7 @@ export class AuthController {
   }
 
   @authSwagger.ApiLogout()
-  @UseGuards(AuthGuard('jwt-access'))
+  @UseGuards(JwtAccessGuard)
   @Post('logout')
   public logout(@Res({ passthrough: true }) res: Response): { message: string } {
     res.cookie('refreshToken', '');

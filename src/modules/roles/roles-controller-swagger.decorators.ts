@@ -87,7 +87,7 @@ export function ApiCreateRole(): MethodDecorator {
     }),
     ApiResponse({
       status: HttpStatus.CONFLICT,
-      description: 'Conflict. Attempting to reuse unique data.',
+      description: 'Conflict. The role already exists.',
     }),
     ApiResponse({
       status: HttpStatus.UNAUTHORIZED,

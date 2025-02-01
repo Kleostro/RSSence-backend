@@ -7,4 +7,8 @@ export const ERROR_MESSAGES = {
   PROFILE_NOT_FOUND: 'Profile not found',
   PROFILE_EXISTS: 'Profile already exists',
   USERNAME_EXISTS: 'Username already exists',
+  ROLE_NOT_FOUND: 'Role not found',
+  ROLE_EXISTS: 'Role already exists',
+  INVALID_ROLE: 'Invalid role',
+  USER_HAS_ROLE: 'User already has this role',
 } as const;

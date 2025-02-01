@@ -1,27 +1,37 @@
 import { PrismaService } from '@/prisma.service';
 import { ERROR_MESSAGES } from '@/shared/constants/error-message';
 import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
-import { User } from '@prisma/client';
+import { User, UserRole } from '@prisma/client';
 
+import { RolesService } from '../roles/roles.service';
 import { GetUserDto } from './dto/get-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class UsersService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly rolesService: RolesService,
+  ) {}
 
-  public async getOne({ id, email }: GetUserDto): Promise<User> {
+  public async getOne({ id, email }: GetUserDto): Promise<User & { roles: string[] }> {
     if (!id && !email) {
       throw new BadRequestException(ERROR_MESSAGES.INVALID_CREDENTIALS);
     }
 
-    const user = await this.prisma.user.findFirst({ where: { id, email } });
+    const user = await this.prisma.user.findFirst({
+      where: { id, email },
+      include: { roles: { include: { role: true } } },
+    });
 
     if (!user) {
       throw new NotFoundException(ERROR_MESSAGES.USER_NOT_FOUND);
     }
 
-    return user;
+    return {
+      ...user,
+      roles: user.roles.map((userRole) => userRole.role.name),
+    };
   }
 
   public async createOne({ email, hashedPassword }: { email: string; hashedPassword: string }): Promise<User> {
@@ -32,7 +42,12 @@ export class UsersService {
   }
 
   public async getAll(): Promise<User[]> {
-    return this.prisma.user.findMany();
+    const users = await this.prisma.user.findMany({ include: { roles: { include: { role: true } } } });
+
+    return users.map((user) => ({
+      ...user,
+      roles: user.roles.map((userRole) => userRole.role.name),
+    }));
   }
 
   public async updateOne(dto: UpdateUserDto, userId: number): Promise<User | null> {
@@ -64,6 +79,17 @@ export class UsersService {
     }
 
     return false;
+  }
+
+  public async addRoleToUser(userId: number, roleName: string): Promise<UserRole> {
+    await this.ensureUserExists(userId);
+    return this.rolesService.addRoleToUser(userId, roleName);
+  }
+
+  public async removeRoleFromUser(userId: number, roleName: string): Promise<UserRole> {
+    await this.ensureUserExists(userId);
+    const role = await this.rolesService.getOne({ name: roleName });
+    return this.rolesService.removeRoleFromUser(userId, role.id);
   }
 
   private async hasUser(id: number): Promise<User | null> {

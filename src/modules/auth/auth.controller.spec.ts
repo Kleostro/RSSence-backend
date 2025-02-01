@@ -4,6 +4,7 @@ import { JwtService } from '@nestjs/jwt';
 import { Test, TestingModule } from '@nestjs/testing';
 
 import { PrismaService } from '../../prisma.service';
+import { RolesService } from '../roles/roles.service';
 import { UsersService } from '../users/users.service';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
@@ -26,6 +27,7 @@ describe('AuthController', () => {
         PasswordService,
         EmailService,
         MailerService,
+        RolesService,
         TokenService,
         {
           name: MAILER_OPTIONS,

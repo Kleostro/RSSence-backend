@@ -1,3 +1,4 @@
+import { ROLES } from '@/shared/constants/roles';
 import { applyDecorators, HttpStatus } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
 
@@ -7,7 +8,7 @@ import { UserDto } from './dto/user.dto';
 export function ApiGetAllUsers(): MethodDecorator {
   return applyDecorators(
     ApiOperation({
-      summary: 'Get all users',
+      summary: `Get all users (requires role ${ROLES.MODERATOR} or ${ROLES.ADMIN})`,
       description: 'Retrieve a list of all users.',
     }),
     ApiBearerAuth('bearer'),
@@ -19,6 +20,10 @@ export function ApiGetAllUsers(): MethodDecorator {
     ApiResponse({
       status: HttpStatus.UNAUTHORIZED,
       description: 'Unauthorized. Invalid or expired access token.',
+    }),
+    ApiResponse({
+      status: HttpStatus.FORBIDDEN,
+      description: 'Forbidden. User does not have the required role.',
     }),
   );
 }
@@ -45,12 +50,12 @@ export function ApiGetCurrentUser(): MethodDecorator {
 export function ApiGetOneUser(): MethodDecorator {
   return applyDecorators(
     ApiOperation({
-      summary: 'Get user by ID',
+      summary: `Get user by ID (requires role ${ROLES.MODERATOR} or ${ROLES.ADMIN})`,
       description: 'Retrieve a user by their ID.',
     }),
     ApiBearerAuth('bearer'),
     ApiParam({
-      name: 'id',
+      name: 'userId',
       example: 1,
       required: true,
       description: 'The ID of the user to retrieve.',
@@ -67,6 +72,10 @@ export function ApiGetOneUser(): MethodDecorator {
     ApiResponse({
       status: HttpStatus.UNAUTHORIZED,
       description: 'Unauthorized. Invalid or expired access token.',
+    }),
+    ApiResponse({
+      status: HttpStatus.FORBIDDEN,
+      description: 'Forbidden. User does not have the required role.',
     }),
   );
 }
@@ -100,7 +109,7 @@ export function ApiUpdateCurrentUser(): MethodDecorator {
 export function ApiUpdateOneUser(): MethodDecorator {
   return applyDecorators(
     ApiOperation({
-      summary: 'Update user by ID',
+      summary: `Update user by ID (requires role ${ROLES.MODERATOR} or ${ROLES.ADMIN})`,
       description: 'Update a user by their ID.',
     }),
     ApiBearerAuth('bearer'),
@@ -109,7 +118,7 @@ export function ApiUpdateOneUser(): MethodDecorator {
       type: UserDto,
     }),
     ApiParam({
-      name: 'id',
+      name: 'userId',
       example: 1,
       required: true,
       description: 'The ID of the user to update.',
@@ -130,13 +139,17 @@ export function ApiUpdateOneUser(): MethodDecorator {
       status: HttpStatus.UNAUTHORIZED,
       description: 'Unauthorized. Invalid or expired access token.',
     }),
+    ApiResponse({
+      status: HttpStatus.FORBIDDEN,
+      description: 'Forbidden. User does not have the required role.',
+    }),
   );
 }
 
 export function ApiDeleteAllUsers(): MethodDecorator {
   return applyDecorators(
     ApiOperation({
-      summary: 'Delete all users',
+      summary: `Delete all users (requires role ${ROLES.ADMIN})`,
       description: 'Delete all users.',
     }),
     ApiBearerAuth('bearer'),
@@ -148,18 +161,22 @@ export function ApiDeleteAllUsers(): MethodDecorator {
       status: HttpStatus.UNAUTHORIZED,
       description: 'Unauthorized. Invalid or expired access token.',
     }),
+    ApiResponse({
+      status: HttpStatus.FORBIDDEN,
+      description: 'Forbidden. User does not have the required role.',
+    }),
   );
 }
 
 export function ApiDeleteOneUser(): MethodDecorator {
   return applyDecorators(
     ApiOperation({
-      summary: 'Delete user by ID',
+      summary: `Delete user by ID (requires role ${ROLES.MODERATOR} or ${ROLES.ADMIN})`,
       description: 'Delete a user by their ID.',
     }),
     ApiBearerAuth('bearer'),
     ApiParam({
-      name: 'id',
+      name: 'userId',
       example: 1,
       required: true,
       description: 'The ID of the user to delete.',
@@ -175,6 +192,10 @@ export function ApiDeleteOneUser(): MethodDecorator {
     ApiResponse({
       status: HttpStatus.UNAUTHORIZED,
       description: 'Unauthorized. Invalid or expired access token.',
+    }),
+    ApiResponse({
+      status: HttpStatus.FORBIDDEN,
+      description: 'Forbidden. User does not have the required role.',
     }),
   );
 }
@@ -193,6 +214,82 @@ export function ApiDeleteCurrentUser(): MethodDecorator {
     ApiResponse({
       status: HttpStatus.UNAUTHORIZED,
       description: 'Unauthorized. Invalid or expired access token.',
+    }),
+  );
+}
+
+export function ApiAddRoleToUser(): MethodDecorator {
+  return applyDecorators(
+    ApiOperation({
+      summary: `Add role to user by ID (requires role ${ROLES.ADMIN})`,
+      description: 'Add a role to a user by their ID.',
+    }),
+    ApiBearerAuth('bearer'),
+    ApiParam({
+      name: 'userId',
+      example: 1,
+      required: true,
+      description: 'The ID of the user to add the role to.',
+    }),
+    ApiParam({
+      name: 'roleName',
+      example: 'ADMIN',
+      required: true,
+      description: 'The name of the role to add to the user.',
+    }),
+    ApiResponse({
+      status: HttpStatus.OK,
+      description: 'Successfully added the role to the user.',
+    }),
+    ApiResponse({
+      status: HttpStatus.NOT_FOUND,
+      description: 'Not found. The user or role does not exist.',
+    }),
+    ApiResponse({
+      status: HttpStatus.UNAUTHORIZED,
+      description: 'Unauthorized. Invalid or expired access token.',
+    }),
+    ApiResponse({
+      status: HttpStatus.FORBIDDEN,
+      description: 'Forbidden. User does not have the required role.',
+    }),
+  );
+}
+
+export function ApiRemoveRoleFromUser(): MethodDecorator {
+  return applyDecorators(
+    ApiOperation({
+      summary: `Remove role from user by ID (requires role ${ROLES.ADMIN})`,
+      description: 'Remove a role from a user by their ID.',
+    }),
+    ApiBearerAuth('bearer'),
+    ApiParam({
+      name: 'userId',
+      example: 1,
+      required: true,
+      description: 'The ID of the user to remove the role from.',
+    }),
+    ApiParam({
+      name: 'roleName',
+      example: 'ADMIN',
+      required: true,
+      description: 'The name of the role to remove from the user.',
+    }),
+    ApiResponse({
+      status: HttpStatus.OK,
+      description: 'Successfully removed the role from the user.',
+    }),
+    ApiResponse({
+      status: HttpStatus.NOT_FOUND,
+      description: 'Not found. The user or role does not exist.',
+    }),
+    ApiResponse({
+      status: HttpStatus.UNAUTHORIZED,
+      description: 'Unauthorized. Invalid or expired access token.',
+    }),
+    ApiResponse({
+      status: HttpStatus.FORBIDDEN,
+      description: 'Forbidden. User does not have the required role.',
     }),
   );
 }

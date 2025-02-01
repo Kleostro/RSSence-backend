@@ -22,7 +22,7 @@ export class JwtAccessStrategy extends PassportStrategy(Strategy, 'jwt-access') 
     });
   }
 
-  public async validate({ userId }: JwtPayloadType): Promise<User | null> {
+  public async validate({ userId }: JwtPayloadType): Promise<(User & { roles: string[] }) | null> {
     const user = await this.usersService.getOne({ id: Number(userId) });
 
     if (!user) {

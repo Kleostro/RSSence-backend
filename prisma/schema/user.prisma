@@ -1,12 +1,13 @@
 model User {
   id Int @id @default(autoincrement())
 
-  email          String  @unique
+  email          String @unique
   hashedPassword String @map("hashed_password")
 
   status UserStatus @default(offline)
 
   profile Profile?
+  roles   UserRole[]
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -26,6 +27,24 @@ model Profile {
   userId Int  @unique
 
   @@map("profiles")
+}
+
+model Role {
+  id    Int        @id @default(autoincrement())
+  name  String     @unique
+  users UserRole[]
+
+  @@map("roles")
+}
+
+model UserRole {
+  userId Int @map("user_id")
+  roleId Int @map("role_id")
+  user   User @relation(fields: [userId], references: [id])
+  role   Role @relation(fields: [roleId], references: [id])
+
+  @@id([userId, roleId])
+  @@map("users_roles")
 }
 
 enum UserStatus {

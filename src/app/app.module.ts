@@ -3,15 +3,16 @@ import { env } from 'process';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { JwtModule } from '@nestjs/jwt';
 
 import { AuthModule } from '../modules/auth/auth.module';
-import { PrismaService } from '../prisma.service';
 import { AppGateway } from './app.gateway';
 
 @Module({
   imports: [
     AuthModule,
     ConfigModule.forRoot({ isGlobal: true }),
+    JwtModule.register({ global: true }),
     MailerModule.forRoot({
       transport: {
         host: env['EMAIL_HOST'],
@@ -23,6 +24,6 @@ import { AppGateway } from './app.gateway';
       },
     }),
   ],
-  providers: [PrismaService, AppGateway],
+  providers: [AppGateway],
 })
 export class AppModule {}

@@ -1,19 +1,30 @@
 import { PrismaService } from '@/prisma.service';
 import { ERROR_MESSAGES } from '@/shared/constants/error-message';
+import { FileService } from '@/shared/services/file/file.service';
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { Profile } from '@prisma/client';
 
+import { AVATAR_OPTIONS } from './constants/images-options';
 import { CreateProfileDto } from './dto/create-profile.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 
 @Injectable()
 export class ProfilesService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly fileService: FileService,
+  ) {}
 
-  public async createOne(dto: CreateProfileDto, userId: number): Promise<Profile> {
+  public async createOne(dto: CreateProfileDto, userId: number, avatar?: Express.Multer.File): Promise<Profile> {
     await this.ensureProfileDoesNotExist(userId);
-    await this.ensureUsernameAvailable(dto.username);
-    return this.prisma.profile.create({ data: { ...dto, userId } });
+
+    if (!dto.username) {
+      await this.ensureUsernameAvailable(dto.username);
+    }
+
+    const avatarUrl = avatar ? await this.fileService.processImage(avatar, AVATAR_OPTIONS) : null;
+
+    return this.prisma.profile.create({ data: { ...dto, userId, avatarUrl } });
   }
 
   public async getOne(userId: number): Promise<Profile | null> {
@@ -21,10 +32,20 @@ export class ProfilesService {
     return this.prisma.profile.findFirst({ where: { userId } });
   }
 
-  public async updateOne(dto: UpdateProfileDto, userId: number): Promise<Profile | null> {
+  public async updateOne(dto: UpdateProfileDto, userId: number, avatar?: Express.Multer.File): Promise<Profile> {
     await this.ensureProfileExists(userId);
-    await this.ensureUsernameAvailable(dto.username);
-    return this.prisma.profile.update({ where: { userId }, data: dto });
+
+    if (dto.username) {
+      await this.ensureUsernameAvailable(dto.username);
+    }
+
+    const avatarUrl = avatar ? await this.fileService.processImage(avatar, AVATAR_OPTIONS) : null;
+
+    if (!avatarUrl) {
+      return this.prisma.profile.update({ where: { userId }, data: { ...dto } });
+    }
+
+    return this.prisma.profile.update({ where: { userId }, data: { ...dto, avatarUrl } });
   }
 
   public async deleteOne(userId: number): Promise<Profile> {

@@ -3,7 +3,7 @@ import { IsDefined, IsNotEmpty, IsOptional, IsString, MaxLength, MinLength } fro
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CheckUsernameDto {
-  @ApiProperty()
+  @ApiProperty({ required: true, default: 'johndoe' })
   @IsOptional()
   @IsDefined()
   @IsNotEmpty()

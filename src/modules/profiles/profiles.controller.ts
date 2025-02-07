@@ -1,9 +1,22 @@
 import { CurrentUser } from '@/shared/decorators/current-user.decorator';
-import { Body, Controller, Delete, Get, ParseIntPipe, Patch, Post, UseGuards } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  ParseIntPipe,
+  Patch,
+  Post,
+  UploadedFile,
+  UseGuards,
+  UseInterceptors,
+} from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiTags } from '@nestjs/swagger';
 import { Profile } from '@prisma/client';
 
+import { JwtAccessGuard } from '../auth/guards/jwt-acess.guard';
+import { AVATAR_VALIDATION_PIPE } from './constants/file-pipe-builders';
 import { CheckUsernameDto } from './dto/check-username';
 import { CreateProfileDto } from './dto/create-profile.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
@@ -11,7 +24,7 @@ import * as profilesSwagger from './profiles-controller-swagger.decorators';
 import { ProfilesService } from './profiles.service';
 
 @ApiTags('Profile')
-@UseGuards(AuthGuard('jwt-access'))
+@UseGuards(JwtAccessGuard)
 @Controller('profiles')
 export class ProfilesController {
   constructor(private readonly profilesService: ProfilesService) {}
@@ -24,20 +37,24 @@ export class ProfilesController {
 
   @profilesSwagger.ApiCreateMeProfile()
   @Post('me')
+  @UseInterceptors(FileInterceptor('avatar'))
   public async createMe(
     @Body() createProfileDto: CreateProfileDto,
     @CurrentUser('id', ParseIntPipe) userId: number,
+    @UploadedFile(AVATAR_VALIDATION_PIPE) avatar: Express.Multer.File,
   ): Promise<Profile> {
-    return this.profilesService.createOne(createProfileDto, userId);
+    return this.profilesService.createOne(createProfileDto, userId, avatar);
   }
 
   @profilesSwagger.ApiUpdateMeProfile()
   @Patch('me')
+  @UseInterceptors(FileInterceptor('avatar'))
   public async updateMe(
     @Body() updateProfileDto: UpdateProfileDto,
     @CurrentUser('id', ParseIntPipe) userId: number,
-  ): Promise<Profile | null> {
-    return this.profilesService.updateOne(updateProfileDto, userId);
+    @UploadedFile(AVATAR_VALIDATION_PIPE) avatar?: Express.Multer.File,
+  ): Promise<Profile> {
+    return this.profilesService.updateOne(updateProfileDto, userId, avatar);
   }
 
   @profilesSwagger.ApiDeleteMeProfile()

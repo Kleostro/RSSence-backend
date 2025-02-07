@@ -4,6 +4,7 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export class ResetPasswordDto {
   @ApiProperty({
+    required: true,
     description: 'You can get the token from the password reset link that comes in the mail',
   })
   @IsDefined()
@@ -11,7 +12,7 @@ export class ResetPasswordDto {
   @IsString()
   public passwordResetToken!: string;
 
-  @ApiProperty()
+  @ApiProperty({ required: true, default: 'new-password' })
   @IsDefined()
   @IsNotEmpty()
   @IsString()

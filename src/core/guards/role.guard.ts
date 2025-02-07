@@ -1,4 +1,3 @@
-import { RolesService } from '@/modules/roles/roles.service';
 import { CanActivate, ExecutionContext, ForbiddenException, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 
@@ -6,10 +5,7 @@ import { ROLES_KEY } from '../../shared/decorators/roles.decorator';
 
 @Injectable()
 export class RoleGuard implements CanActivate {
-  constructor(
-    private reflector: Reflector,
-    private roleService: RolesService,
-  ) {}
+  constructor(private reflector: Reflector) {}
 
   public canActivate(context: ExecutionContext): boolean {
     const requiredRoles = this.reflector.get<string[]>(ROLES_KEY, context.getHandler());

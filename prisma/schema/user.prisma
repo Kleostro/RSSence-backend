@@ -4,8 +4,6 @@ model User {
   email          String @unique
   hashedPassword String @map("hashed_password")
 
-  status UserStatus @default(offline)
-
   profile Profile?
   roles   UserRole[]
 
@@ -45,9 +43,4 @@ model UserRole {
 
   @@id([userId, roleId])
   @@map("users_roles")
-}
-
-enum UserStatus {
-  online
-  offline
 }

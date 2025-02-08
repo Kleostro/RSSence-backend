@@ -1,5 +1,5 @@
 import { applyDecorators, HttpStatus } from '@nestjs/common';
-import { ApiBearerAuth, ApiBody, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOperation, ApiResponse } from '@nestjs/swagger';
 
 import { CheckUsernameDto } from './dto/check-username';
 import { CreateProfileDto } from './dto/create-profile.dto';
@@ -11,7 +11,7 @@ export function ApiGetMeProfile(): MethodDecorator {
       summary: 'Get current profile',
       description: 'Retrieve the current user profile.',
     }),
-    ApiBearerAuth('jwt-access'),
+    ApiBearerAuth('bearer'),
     ApiResponse({
       status: HttpStatus.OK,
       description: 'Returns the current user profile.',
@@ -34,7 +34,8 @@ export function ApiCreateMeProfile(): MethodDecorator {
       summary: 'Create a new profile',
       description: 'Creates a new profile for the current user.',
     }),
-    ApiBearerAuth('jwt-access'),
+    ApiBearerAuth('bearer'),
+    ApiConsumes('multipart/form-data'),
     ApiBody({
       required: false,
       type: CreateProfileDto,
@@ -52,6 +53,10 @@ export function ApiCreateMeProfile(): MethodDecorator {
       status: HttpStatus.CONFLICT,
       description: 'Conflict. Attempting to reuse unique data.',
     }),
+    ApiResponse({
+      status: HttpStatus.UNAUTHORIZED,
+      description: 'Unauthorized. Invalid or expired access token.',
+    }),
   );
 }
 
@@ -61,7 +66,8 @@ export function ApiUpdateMeProfile(): MethodDecorator {
       summary: 'Update current profile',
       description: 'Updates the current user profile.',
     }),
-    ApiBearerAuth('jwt-access'),
+    ApiBearerAuth('bearer'),
+    ApiConsumes('multipart/form-data'),
     ApiBody({
       required: false,
       type: UpdateProfileDto,
@@ -92,7 +98,7 @@ export function ApiDeleteMeProfile(): MethodDecorator {
       summary: 'Delete current profile',
       description: 'Deletes the current user profile.',
     }),
-    ApiBearerAuth('jwt-access'),
+    ApiBearerAuth('bearer'),
     ApiResponse({
       status: HttpStatus.OK,
       description: 'Successfully deleted the profile.',
@@ -114,6 +120,7 @@ export function ApiCheckAvailableUsername(): MethodDecorator {
       summary: 'Check if a username is available',
       description: 'Check if a given username is already registered.',
     }),
+    ApiBearerAuth('bearer'),
     ApiBody({
       required: true,
       type: CheckUsernameDto,
@@ -126,6 +133,10 @@ export function ApiCheckAvailableUsername(): MethodDecorator {
     ApiResponse({
       status: HttpStatus.BAD_REQUEST,
       description: 'Bad request. The data provided is invalid.',
+    }),
+    ApiResponse({
+      status: HttpStatus.UNAUTHORIZED,
+      description: 'Unauthorized. Invalid or expired access token.',
     }),
   );
 }

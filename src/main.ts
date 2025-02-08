@@ -16,7 +16,7 @@ async function bootstrap(): Promise<void> {
   await seedDatabase(prisma);
 
   app.useWebSocketAdapter(new IoAdapter(app));
-  app.useGlobalPipes(new ValidationPipe());
+  app.useGlobalPipes(new ValidationPipe({ transform: true }));
   app.useGlobalFilters(new AllExceptionsFilter());
   app.use(cookieParser());
   app.setGlobalPrefix('api');
@@ -41,9 +41,17 @@ async function bootstrap(): Promise<void> {
   SwaggerModule.setup('docs', app, document);
 
   app.enableCors({
-    origin: '*',
+    // eslint-disable-next-line consistent-return
+    origin: (origin, callback) => {
+      if (!origin) {
+        return callback(null, true);
+      }
+
+      callback(null, true);
+    },
     methods: 'GET, POST, PUT, PATCH, DELETE',
     credentials: true,
+    allowedHeaders: 'Content-Type, Authorization',
   });
 
   await app.listen(3000);

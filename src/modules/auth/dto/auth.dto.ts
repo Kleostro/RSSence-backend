@@ -3,13 +3,13 @@ import { IsDefined, IsEmail, IsNotEmpty, IsString, MaxLength, MinLength } from '
 import { ApiProperty } from '@nestjs/swagger';
 
 export class AuthDto {
-  @ApiProperty()
+  @ApiProperty({ required: true, default: 'johndoe@gmail.com' })
   @IsDefined()
   @IsNotEmpty()
   @IsEmail()
   public email!: string;
 
-  @ApiProperty()
+  @ApiProperty({ required: true, default: 'password' })
   @IsDefined()
   @IsNotEmpty()
   @IsString()

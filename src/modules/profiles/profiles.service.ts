@@ -28,8 +28,7 @@ export class ProfilesService {
   }
 
   public async getOne(userId: number): Promise<Profile | null> {
-    await this.ensureProfileExists(userId);
-    return this.prisma.profile.findFirst({ where: { userId } });
+    return this.prisma.profile.findFirst({ where: { userId } }) ?? null;
   }
 
   public async updateOne(dto: UpdateProfileDto, userId: number, avatar?: Express.Multer.File): Promise<Profile> {

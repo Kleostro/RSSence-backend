@@ -6,32 +6,29 @@ import { BadRequestException } from '@nestjs/common';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateProfileDto {
-  @ApiProperty({ required: false, default: 'John' })
-  @IsOptional()
+  @ApiProperty({ required: true, default: 'John' })
   @IsDefined()
   @IsNotEmpty()
   @IsString()
   @MinLength(3)
   @MaxLength(16)
-  public firstname?: string;
+  public firstname!: string;
 
-  @ApiProperty({ required: false, default: 'Doe' })
-  @IsOptional()
+  @ApiProperty({ required: true, default: 'Doe' })
   @IsDefined()
   @IsNotEmpty()
   @IsString()
   @MinLength(3)
   @MaxLength(32)
-  public lastname?: string;
+  public lastname!: string;
 
-  @ApiProperty({ required: false, default: 'johndoe' })
-  @IsOptional()
+  @ApiProperty({ required: true, default: 'johndoe' })
   @IsDefined()
   @IsNotEmpty()
   @IsString()
   @MinLength(3)
   @MaxLength(16)
-  public username?: string;
+  public username!: string;
 
   @ApiProperty({ required: false, default: 'My bio' })
   @IsOptional()

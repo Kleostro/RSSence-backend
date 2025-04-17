@@ -1,25 +1,26 @@
 import { PrismaService } from '@/prisma.service';
-import { ERROR_MESSAGES } from '@/shared/constants/error-message';
 import { FileService } from '@/shared/services/file/file.service';
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Profile } from '@prisma/client';
 
 import { AVATAR_OPTIONS } from './constants/images-options';
 import { CreateProfileDto } from './dto/create-profile.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
+import { ProfilesUtilService } from './services/profiles-util.service';
 
 @Injectable()
 export class ProfilesService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly fileService: FileService,
+    private readonly profilesUtilService: ProfilesUtilService,
   ) {}
 
   public async createOne(dto: CreateProfileDto, userId: number, avatar?: Express.Multer.File): Promise<Profile> {
-    await this.ensureProfileDoesNotExist(userId);
+    await this.profilesUtilService.ensureProfileDoesNotExist(userId);
 
     if (!dto.username) {
-      await this.ensureUsernameAvailable(dto.username);
+      await this.profilesUtilService.ensureUsernameAvailable(dto.username);
     }
 
     const avatarUrl = avatar ? await this.fileService.processImage(avatar, AVATAR_OPTIONS) : null;
@@ -32,10 +33,10 @@ export class ProfilesService {
   }
 
   public async updateOne(dto: UpdateProfileDto, userId: number, avatar?: Express.Multer.File): Promise<Profile> {
-    await this.ensureProfileExists(userId);
+    await this.profilesUtilService.ensureProfileExists(userId);
 
     if (dto.username) {
-      await this.ensureUsernameAvailable(dto.username);
+      await this.profilesUtilService.ensureUsernameAvailable(dto.username);
     }
 
     const avatarUrl = avatar ? await this.fileService.processImage(avatar, AVATAR_OPTIONS) : null;
@@ -48,38 +49,17 @@ export class ProfilesService {
   }
 
   public async deleteOne(userId: number): Promise<Profile> {
-    await this.ensureProfileExists(userId);
+    await this.profilesUtilService.ensureProfileExists(userId);
+
+    const hasAuthor = await this.prisma.author.findFirst({ where: { userId } });
+
+    if (hasAuthor) {
+      await this.prisma.author.delete({ where: { userId } });
+    }
     return this.prisma.profile.delete({ where: { userId } });
   }
 
   public async checkAvailableUsername(username?: string): Promise<boolean> {
-    const result = await this.prisma.profile.findFirst({ where: { username } });
-    return !result;
-  }
-
-  private async ensureUsernameAvailable(username?: string): Promise<void> {
-    const result = await this.checkAvailableUsername(username);
-    if (!result) {
-      throw new ConflictException(ERROR_MESSAGES.USERNAME_EXISTS);
-    }
-  }
-
-  private async hasProfile(userId: number): Promise<Profile | null> {
-    const result = await this.prisma.profile.findFirst({ where: { userId } });
-    return result;
-  }
-
-  private async ensureProfileExists(userId: number): Promise<void> {
-    const hasProfile = await this.hasProfile(userId);
-    if (!hasProfile) {
-      throw new NotFoundException(ERROR_MESSAGES.PROFILE_NOT_FOUND);
-    }
-  }
-
-  private async ensureProfileDoesNotExist(userId: number): Promise<void> {
-    const hasProfile = await this.hasProfile(userId);
-    if (hasProfile) {
-      throw new ConflictException(ERROR_MESSAGES.PROFILE_EXISTS);
-    }
+    return this.profilesUtilService.checkAvailableUsername(username);
   }
 }

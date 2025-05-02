@@ -26,14 +26,14 @@ import { UpdateAuthorDto } from './dto/update-author.dto';
 export class AuthorsController {
   constructor(private readonly authorsService: AuthorsService) {}
 
-  @Get('me')
-  public async getMe(@CurrentUser('id', ParseIntPipe) userId: number): Promise<Author | null> {
-    return this.authorsService.getOne(userId);
+  @Get()
+  public async getAll(): Promise<Author[]> {
+    return this.authorsService.getAll();
   }
 
-  @Post('me')
+  @Post()
   @UseInterceptors(FileInterceptor('avatar'))
-  public async createMe(
+  public async createOne(
     @Body() dto: CreateAuthorDto,
     @CurrentUser('id', ParseIntPipe) userId: number,
     @UploadedFile(AVATAR_VALIDATION_PIPE) avatar: Express.Multer.File,
@@ -41,9 +41,9 @@ export class AuthorsController {
     return this.authorsService.createOne(dto, userId, avatar);
   }
 
-  @Patch('me')
+  @Patch()
   @UseInterceptors(FileInterceptor('avatar'))
-  public async updateMe(
+  public async updateOne(
     @Body() updateAuthorDto: UpdateAuthorDto,
     @CurrentUser('id', ParseIntPipe) userId: number,
     @UploadedFile(AVATAR_VALIDATION_PIPE) avatar?: Express.Multer.File,
@@ -51,8 +51,8 @@ export class AuthorsController {
     return this.authorsService.updateOne(updateAuthorDto, userId, avatar);
   }
 
-  @Delete('me')
-  public async deleteMe(@CurrentUser('id', ParseIntPipe) userId: number): Promise<Author> {
+  @Delete()
+  public async deleteOne(@CurrentUser('id', ParseIntPipe) userId: number): Promise<Author> {
     return this.authorsService.deleteOne(userId);
   }
 

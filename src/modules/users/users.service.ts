@@ -6,6 +6,7 @@ import { User, UserRole } from '@prisma/client';
 import { RolesService } from '../roles/roles.service';
 import { GetUserDto } from './dto/get-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { UserWithRelations } from './types/types';
 
 @Injectable()
 export class UsersService {
@@ -14,14 +15,14 @@ export class UsersService {
     private readonly rolesService: RolesService,
   ) {}
 
-  public async getOne({ id, email }: GetUserDto): Promise<User & { roles: string[] }> {
+  public async getOne({ id, email }: GetUserDto): Promise<UserWithRelations> {
     if (!id && !email) {
       throw new BadRequestException(ERROR_MESSAGES.INVALID_CREDENTIALS);
     }
 
     const user = await this.prisma.user.findFirst({
       where: { id, email },
-      include: { roles: { include: { role: true } } },
+      include: { roles: { include: { role: true } }, author: true, profile: true },
     });
 
     if (!user) {

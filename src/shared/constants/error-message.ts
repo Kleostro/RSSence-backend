@@ -11,4 +11,5 @@ export const ERROR_MESSAGES = {
   ROLE_EXISTS: 'Role already exists',
   INVALID_ROLE: 'Invalid role',
   USER_HAS_ROLE: 'User already has this role',
+  AUTHOR_NOT_FOUND: 'Author not found',
 } as const;

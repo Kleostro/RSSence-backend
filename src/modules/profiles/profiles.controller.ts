@@ -29,16 +29,15 @@ import { ProfilesService } from './profiles.service';
 export class ProfilesController {
   constructor(private readonly profilesService: ProfilesService) {}
 
-  @profilesSwagger.ApiGetMeProfile()
-  @Get('me')
-  public async getMe(@CurrentUser('id', ParseIntPipe) userId: number): Promise<Profile | null> {
-    return this.profilesService.getOne(userId);
+  @Get()
+  public async getAll(): Promise<Profile[]> {
+    return this.profilesService.getAll();
   }
 
   @profilesSwagger.ApiCreateMeProfile()
-  @Post('me')
+  @Post()
   @UseInterceptors(FileInterceptor('avatar'))
-  public async createMe(
+  public async createOne(
     @Body() createProfileDto: CreateProfileDto,
     @CurrentUser('id', ParseIntPipe) userId: number,
     @UploadedFile(AVATAR_VALIDATION_PIPE) avatar: Express.Multer.File,
@@ -47,9 +46,9 @@ export class ProfilesController {
   }
 
   @profilesSwagger.ApiUpdateMeProfile()
-  @Patch('me')
+  @Patch()
   @UseInterceptors(FileInterceptor('avatar'))
-  public async updateMe(
+  public async updateOne(
     @Body() updateProfileDto: UpdateProfileDto,
     @CurrentUser('id', ParseIntPipe) userId: number,
     @UploadedFile(AVATAR_VALIDATION_PIPE) avatar?: Express.Multer.File,
@@ -58,8 +57,8 @@ export class ProfilesController {
   }
 
   @profilesSwagger.ApiDeleteMeProfile()
-  @Delete('me')
-  public async deleteMe(@CurrentUser('id', ParseIntPipe) userId: number): Promise<Profile> {
+  @Delete()
+  public async deleteOne(@CurrentUser('id', ParseIntPipe) userId: number): Promise<Profile> {
     return this.profilesService.deleteOne(userId);
   }
 

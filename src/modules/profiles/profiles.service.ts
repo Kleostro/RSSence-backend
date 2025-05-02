@@ -16,6 +16,10 @@ export class ProfilesService {
     private readonly profilesUtilService: ProfilesUtilService,
   ) {}
 
+  public async getAll(): Promise<Profile[]> {
+    return this.prisma.profile.findMany();
+  }
+
   public async createOne(dto: CreateProfileDto, userId: number, avatar?: Express.Multer.File): Promise<Profile> {
     await this.profilesUtilService.ensureProfileDoesNotExist(userId);
 
@@ -26,10 +30,6 @@ export class ProfilesService {
     const avatarUrl = avatar ? await this.fileService.processImage(avatar, AVATAR_OPTIONS) : null;
 
     return this.prisma.profile.create({ data: { ...dto, userId, avatarUrl } });
-  }
-
-  public async getOne(userId: number): Promise<Profile | null> {
-    return this.prisma.profile.findFirst({ where: { userId } }) ?? null;
   }
 
   public async updateOne(dto: UpdateProfileDto, userId: number, avatar?: Express.Multer.File): Promise<Profile> {
@@ -56,6 +56,7 @@ export class ProfilesService {
     if (hasAuthor) {
       await this.prisma.author.delete({ where: { userId } });
     }
+
     return this.prisma.profile.delete({ where: { userId } });
   }
 

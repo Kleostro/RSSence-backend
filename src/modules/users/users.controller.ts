@@ -9,6 +9,7 @@ import { User, UserRole } from '@prisma/client';
 import { JwtAccessGuard } from '../auth/guards/jwt-acess.guard';
 import { CheckEmailDto } from './dto/check-email.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { UserWithRelationsWithoutPassword } from './types/types';
 import * as usersController from './users-controller-swagger.decorators';
 import { UsersService } from './users.service';
 
@@ -27,21 +28,27 @@ export class UsersController {
 
   @usersController.ApiGetCurrentUser()
   @UseGuards(JwtAccessGuard)
-  @Get('current-user')
-  public async getCurrentUser(@CurrentUser('id', ParseIntPipe) id: number): Promise<User> {
-    return this.usersService.getOne({ id });
+  @Get('me')
+  public async getCurrentUser(@CurrentUser('id', ParseIntPipe) id: number): Promise<UserWithRelationsWithoutPassword> {
+    const user = await this.usersService.getOne({ id });
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { hashedPassword, ...userWithoutPassword } = user;
+    return userWithoutPassword;
   }
 
   @usersController.ApiGetOneUser()
   @UseGuards(JwtAccessGuard)
   @Get(':userId')
-  public async getOne(@Param('userId', ParseIntPipe) id: number): Promise<User> {
-    return this.usersService.getOne({ id });
+  public async getOne(@Param('userId', ParseIntPipe) id: number): Promise<UserWithRelationsWithoutPassword> {
+    const user = await this.usersService.getOne({ id });
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { hashedPassword, ...userWithoutPassword } = user;
+    return userWithoutPassword;
   }
 
   @usersController.ApiUpdateCurrentUser()
   @UseGuards(JwtAccessGuard)
-  @Patch('current-user')
+  @Patch('me')
   public async updateCurrentUser(
     @Body() updateUserDto: UpdateUserDto,
     @CurrentUser('id', ParseIntPipe) userId: number,
@@ -70,7 +77,7 @@ export class UsersController {
 
   @usersController.ApiDeleteCurrentUser()
   @UseGuards(JwtAccessGuard)
-  @Delete('current-user')
+  @Delete('me')
   public async deleteCurrentUser(@CurrentUser('id', ParseIntPipe) userId: number): Promise<User> {
     return this.usersService.deleteOne(userId);
   }

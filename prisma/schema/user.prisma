@@ -4,9 +4,10 @@ model User {
   email          String @unique
   hashedPassword String @map("hashed_password")
 
+  roles UserRole[]
+
   profile Profile?
   author  Author?
-  roles   UserRole[]
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -15,6 +16,7 @@ model User {
 }
 
 model Profile {
+  id        Int       @id @default(autoincrement())
   firstname String
   lastname  String
   username  String    @unique
@@ -31,9 +33,11 @@ model Profile {
 model Author {
   id Int @id @default(autoincrement())
 
-  username  String    @unique
+  firstname String
+  lastname  String
+  username  String  @unique
   bio       String?
-  avatarUrl String?   @map("avatar_url")
+  avatarUrl String? @map("avatar_url")
 
   userId Int  @unique
   user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -73,9 +77,10 @@ model Post {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   authorId Int    @map("author_id")
-  author   Author @relation("AuthorProfile", fields: [authorId], references: [userId])
+  author   Author @relation("AuthorProfile", fields: [authorId], references: [id], onDelete: Cascade)
 
-  coauthors PostCoauthor[]
+  coauthorsIds Int[]          @default([]) @map("coauthors_ids")
+  PostCoauthor PostCoauthor[]
 
   @@map("posts")
 }

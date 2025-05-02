@@ -7,15 +7,17 @@ import { Author } from '@prisma/client';
 export class AuthorsUtilService {
   constructor(private readonly prisma: PrismaService) {}
 
-  public async ensureAuthorExists(userId: number): Promise<void> {
-    const hasAuthor = await this.hasAuthor(userId);
+  public async ensureAuthorExists({ id, userId }: { id?: number; userId?: number }): Promise<Author> {
+    const hasAuthor = await this.hasAuthor({ id, userId });
     if (!hasAuthor) {
-      throw new NotFoundException(`Author for userId ${userId} does not exist.`);
+      throw new NotFoundException(`Author does not exist.`);
     }
+
+    return hasAuthor;
   }
 
-  public async hasAuthor(userId: number): Promise<Author | null> {
-    const result = await this.prisma.author.findFirst({ where: { userId } });
+  public async hasAuthor({ id, userId }: { id?: number; userId?: number }): Promise<Author | null> {
+    const result = await this.prisma.author.findFirst({ where: { id, userId } });
     return result;
   }
 

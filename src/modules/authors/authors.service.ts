@@ -18,8 +18,8 @@ export class AuthorsService {
     private readonly profilesUtilService: ProfilesUtilService,
   ) {}
 
-  public async getOne(userId: number): Promise<Author | null> {
-    return this.prisma.author.findFirst({ where: { userId } });
+  public async getAll(): Promise<Author[]> {
+    return this.prisma.author.findMany();
   }
 
   public async createOne(dto: CreateAuthorDto, userId: number, avatar?: Express.Multer.File): Promise<Author> {
@@ -35,10 +35,10 @@ export class AuthorsService {
 
   public async updateOne(dto: UpdateAuthorDto, userId: number, avatar?: Express.Multer.File): Promise<Author> {
     await this.profilesUtilService.ensureProfileExists(userId);
-    await this.authorsUtilService.ensureAuthorExists(userId);
+    await this.authorsUtilService.ensureAuthorExists({ userId });
 
     if (dto.username) {
-      await this.profilesUtilService.ensureUsernameAvailable(dto.username);
+      await this.authorsUtilService.ensureUsernameAvailable(dto.username);
     }
 
     const avatarUrl = avatar ? await this.fileService.processImage(avatar, AVATAR_OPTIONS) : null;
@@ -52,7 +52,28 @@ export class AuthorsService {
 
   public async deleteOne(userId: number): Promise<Author> {
     await this.profilesUtilService.ensureProfileExists(userId);
-    await this.authorsUtilService.ensureAuthorExists(userId);
+    const author = await this.authorsUtilService.ensureAuthorExists({ userId });
+
+    const postsToUpdate = await this.prisma.post.findMany({
+      where: {
+        coauthorsIds: {
+          has: author.id,
+        },
+      },
+    });
+    const updatePromises = postsToUpdate.map((post) =>
+      this.prisma.post.update({
+        where: { id: post.id },
+        data: {
+          coauthorsIds: {
+            set: post.coauthorsIds.filter((id) => id !== author.id),
+          },
+        },
+      }),
+    );
+
+    await Promise.all(updatePromises);
+
     return this.prisma.author.delete({ where: { userId } });
   }
 

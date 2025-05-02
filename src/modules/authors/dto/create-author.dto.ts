@@ -6,6 +6,20 @@ export class CreateAuthorDto {
   @IsString()
   @MinLength(3)
   @MaxLength(16)
+  public firstname!: string;
+
+  @IsDefined()
+  @IsNotEmpty()
+  @IsString()
+  @MinLength(3)
+  @MaxLength(32)
+  public lastname!: string;
+
+  @IsDefined()
+  @IsNotEmpty()
+  @IsString()
+  @MinLength(3)
+  @MaxLength(16)
   public username!: string;
 
   @IsOptional()

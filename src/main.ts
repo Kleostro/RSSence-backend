@@ -1,4 +1,5 @@
 import cookieParser from 'cookie-parser';
+import { json } from 'express';
 
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
@@ -19,6 +20,7 @@ async function bootstrap(): Promise<void> {
   app.useGlobalPipes(new ValidationPipe({ transform: true }));
   app.useGlobalFilters(new AllExceptionsFilter());
   app.use(cookieParser());
+  app.use(json({ limit: '10mb' }));
   app.setGlobalPrefix('api');
 
   const config = new DocumentBuilder()

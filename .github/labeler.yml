@@ -42,13 +42,6 @@ style:
   - head-branch:
       - '^style'
 
-test:
-  - any:
-      - head-branch:
-          - '^test'
-      - changed-files:
-          - any-glob-to-any-file: '**/*.spec.ts'
-
 styling:
   - changed-files:
       - any-glob-to-any-file: '**/*.scss'

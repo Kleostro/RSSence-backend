@@ -8,6 +8,5 @@ export class CreatePostDto {
   @MaxLength(64)
   public title!: string;
   public content?: string;
-  public imageUrls?: string[];
   public coauthorIds?: number[];
 }

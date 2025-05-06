@@ -2,7 +2,6 @@ model Post {
   id        Int      @id @default(autoincrement())
   title     String
   content   String?
-  imageUrls String[] @default([]) @map("image_urls")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")

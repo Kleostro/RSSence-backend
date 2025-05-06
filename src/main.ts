@@ -1,8 +1,10 @@
 import cookieParser from 'cookie-parser';
 import { json } from 'express';
+import { join } from 'path';
 
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
+import { NestExpressApplication } from '@nestjs/platform-express';
 import { IoAdapter } from '@nestjs/platform-socket.io';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
@@ -11,8 +13,9 @@ import { AllExceptionsFilter } from './core/filters/exception.filter';
 import { seedDatabase } from './core/seeds/seedDataBase.seed';
 import { PrismaService } from './prisma.service';
 
+// eslint-disable-next-line max-lines-per-function
 async function bootstrap(): Promise<void> {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
   const prisma = app.get(PrismaService);
   await seedDatabase(prisma);
 
@@ -22,6 +25,7 @@ async function bootstrap(): Promise<void> {
   app.use(cookieParser());
   app.use(json({ limit: '10mb' }));
   app.setGlobalPrefix('api');
+  app.useStaticAssets(join(__dirname, '..', 'uploads'), { prefix: '/uploads' });
 
   const config = new DocumentBuilder()
     .setTitle('RSSence')

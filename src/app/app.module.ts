@@ -1,5 +1,6 @@
 import { env } from 'process';
 
+import { ImagesModule } from '@/shared/modules/images/images.module';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
@@ -11,6 +12,7 @@ import { AppGateway } from './app.gateway';
 @Module({
   imports: [
     AuthModule,
+    ImagesModule,
     ConfigModule.forRoot({ isGlobal: true }),
     JwtModule.register({ global: true }),
     MailerModule.forRoot({

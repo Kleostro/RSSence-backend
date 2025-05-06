@@ -1,7 +1,7 @@
+import { Role, UserRole } from '@/generated/prisma';
 import { PrismaService } from '@/prisma.service';
 import { ERROR_MESSAGES } from '@/shared/constants/error-message';
 import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
-import { Role, UserRole } from '@prisma/client';
 
 import { CreateRoleDto } from './dto/create-role.dto';
 import { GetRoleDto } from './dto/get-role.dto';

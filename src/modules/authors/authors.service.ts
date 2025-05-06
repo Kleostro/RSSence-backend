@@ -1,7 +1,7 @@
+import { Author } from '@/generated/prisma';
 import { PrismaService } from '@/prisma.service';
 import { FileService } from '@/shared/services/file/file.service';
 import { Injectable } from '@nestjs/common';
-import { Author } from '@prisma/client';
 
 import { AVATAR_OPTIONS } from '../profiles/constants/images-options';
 import { ProfilesUtilService } from '../profiles/services/profiles-util.service';

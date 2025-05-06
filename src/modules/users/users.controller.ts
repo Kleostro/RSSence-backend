@@ -1,10 +1,10 @@
 import { RoleGuard } from '@/core/guards/role.guard';
+import { User, UserRole } from '@/generated/prisma';
 import { ROLES } from '@/shared/constants/roles';
 import { CurrentUser } from '@/shared/decorators/current-user.decorator';
 import { Roles } from '@/shared/decorators/roles.decorator';
 import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, UseGuards } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { User, UserRole } from '@prisma/client';
 
 import { JwtAccessGuard } from '../auth/guards/jwt-acess.guard';
 import { CheckEmailDto } from './dto/check-email.dto';

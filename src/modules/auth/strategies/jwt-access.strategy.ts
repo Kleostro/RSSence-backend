@@ -1,12 +1,12 @@
 import { ExtractJwt, Strategy } from 'passport-jwt';
 
+import { User } from '@/generated/prisma';
 import { PrismaService } from '@/prisma.service';
 import { ERROR_MESSAGES } from '@/shared/constants/error-message';
 import { JwtPayloadType } from '@/shared/types/jwt-payload';
 import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
-import { User } from '@prisma/client';
 
 @Injectable()
 export class JwtAccessStrategy extends PassportStrategy(Strategy, 'jwt-access') {

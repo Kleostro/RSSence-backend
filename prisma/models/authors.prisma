@@ -1,0 +1,18 @@
+model Author {
+  id Int @id @default(autoincrement())
+
+  firstname String
+  lastname  String
+  username  String  @unique
+  bio       String?
+  avatarUrl String? @map("avatar_url")
+
+  userId Int  @unique
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  authoredPosts Post[] @relation("AuthorProfile")
+
+  coauthoredPosts PostCoauthor[]
+
+  @@map("authors")
+}

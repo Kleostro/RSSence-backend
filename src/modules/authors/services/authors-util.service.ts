@@ -1,7 +1,7 @@
+import { Author } from '@/generated/prisma';
 import { PrismaService } from '@/prisma.service';
 import { ERROR_MESSAGES } from '@/shared/constants/error-message';
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
-import { Author } from '@prisma/client';
 
 @Injectable()
 export class AuthorsUtilService {

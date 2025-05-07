@@ -1,0 +1,14 @@
+model Profile {
+  id        Int       @id @default(autoincrement())
+  firstname String
+  lastname  String
+  username  String    @unique
+  bio       String?
+  avatarUrl String?   @map("avatar_url")
+  birthdate DateTime?
+
+  userId Int  @unique
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("profiles")
+}

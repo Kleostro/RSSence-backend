@@ -1,7 +1,7 @@
 import { Request } from 'express';
 
+import { User } from '@/generated/prisma';
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
-import { User } from '@prisma/client';
 
 export const CurrentUser = createParamDecorator((key: keyof User, context: ExecutionContext) => {
   const req = context.switchToHttp().getRequest<Request & { user: User }>();

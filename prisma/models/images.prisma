@@ -1,0 +1,11 @@
+model Image {
+  id        Int      @id @default(autoincrement())
+  filename  String
+  size     Int
+  contentType String @map("content_type")
+  url       String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("images")
+}

@@ -1,3 +1,4 @@
+import { Profile } from '@/generated/prisma';
 import { CurrentUser } from '@/shared/decorators/current-user.decorator';
 import {
   Body,
@@ -13,7 +14,6 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiTags } from '@nestjs/swagger';
-import { Profile } from '@prisma/client';
 
 import { JwtAccessGuard } from '../auth/guards/jwt-acess.guard';
 import { AVATAR_VALIDATION_PIPE } from './constants/file-pipe-builders';

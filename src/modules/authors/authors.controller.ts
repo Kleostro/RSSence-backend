@@ -1,3 +1,4 @@
+import { Author } from '@/generated/prisma';
 import { CurrentUser } from '@/shared/decorators/current-user.decorator';
 import {
   Body,
@@ -12,7 +13,6 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { Author } from '@prisma/client';
 
 import { JwtAccessGuard } from '../auth/guards/jwt-acess.guard';
 import { AVATAR_VALIDATION_PIPE } from '../profiles/constants/file-pipe-builders';

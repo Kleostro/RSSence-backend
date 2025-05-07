@@ -1,29 +1,32 @@
+import { QueryParamsDto } from '@/common/dto/query-params.dto';
+import { PaginatedResponse } from '@/common/interfaces/pagination.interface';
+import { PaginationService } from '@/common/services/pagination.service';
+import { Post as ProfilePost } from '@/generated/prisma';
 import { PrismaService } from '@/prisma.service';
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Post as ProfilePost } from '@prisma/client';
 
 import { AuthorsUtilService } from '../authors/services/authors-util.service';
 import { CreatePostDto } from './dto/create-post.dto';
 
 @Injectable()
-export class PostsService {
+export class PostsService extends PaginationService<ProfilePost> {
   constructor(
-    private readonly prisma: PrismaService,
+    prisma: PrismaService,
     private readonly authorsUtilService: AuthorsUtilService,
-  ) {}
+  ) {
+    super(prisma, 'createdAt', 'title');
+  }
 
-  public async getAll(): Promise<ProfilePost[]> {
-    const posts = await this.prisma.post.findMany();
-
-    return posts;
+  public async getAll(params: QueryParamsDto): Promise<PaginatedResponse<ProfilePost>> {
+    return super.getPaginatedResult(this.prisma.post, params);
   }
 
   public async getById(postId: number): Promise<ProfilePost> {
     return this.ensurePostExists(postId);
   }
 
-  public async getByAuthorId(authorId: number): Promise<ProfilePost[]> {
-    return this.prisma.post.findMany({ where: { authorId } });
+  public async getByAuthorId(authorId: number, params: QueryParamsDto): Promise<PaginatedResponse<ProfilePost>> {
+    return super.getPaginatedResult(this.prisma.post, params, { authorId });
   }
 
   public async createOne(createPostDto: CreatePostDto, userId: number): Promise<ProfilePost> {
@@ -38,7 +41,6 @@ export class PostsService {
       data: {
         title: createPostDto.title,
         content: createPostDto.content,
-        imageUrls: createPostDto.imageUrls,
         author: { connect: { id: author.id } },
         coauthorsIds,
       },
@@ -56,16 +58,6 @@ export class PostsService {
 
   private async validateCoauthors(coauthorIds: number[]): Promise<void> {
     await Promise.all(coauthorIds.map((id) => this.authorsUtilService.ensureAuthorExists({ id })));
-  }
-
-  private buildCoauthorsData(coauthorIds: number[]): { create: { author: { connect: { id: number } } }[] } | undefined {
-    if (coauthorIds.length === 0) {
-      return undefined;
-    }
-
-    return {
-      create: coauthorIds.map((coauthorId) => ({ author: { connect: { id: coauthorId } } })),
-    };
   }
 
   private async ensurePostExists(postId: number): Promise<ProfilePost> {

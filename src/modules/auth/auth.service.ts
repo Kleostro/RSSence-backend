@@ -1,8 +1,8 @@
 import { Response } from 'express';
 
+import { User } from '@/generated/prisma';
 import { ERROR_MESSAGES } from '@/shared/constants/error-message';
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { User } from '@prisma/client';
 
 import { UsersService } from '../users/users.service';
 import { AuthDto } from './dto/auth.dto';

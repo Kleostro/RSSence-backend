@@ -1,4 +1,4 @@
-import { Author, Profile, User } from '@prisma/client';
+import { Author, Profile, User } from '@/generated/prisma';
 
 export type UserWithoutPassword = Omit<User, 'hashedPassword'>;
 

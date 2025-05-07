@@ -1,10 +1,10 @@
 import { RoleGuard } from '@/core/guards/role.guard';
+import { Role } from '@/generated/prisma';
 import { ROLES } from '@/shared/constants/roles';
 import { Roles } from '@/shared/decorators/roles.decorator';
 import { Body, Controller, Delete, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiTags } from '@nestjs/swagger';
-import { Role } from '@prisma/client';
 
 import { CreateRoleDto } from './dto/create-role.dto';
 import * as rolesController from './roles-controller-swagger.decorators';

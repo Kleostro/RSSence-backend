@@ -10,34 +10,36 @@ import { PrismaClient } from '@/generated/prisma';
 import { QueryParamsDto } from '../dto/query-params.dto';
 import { PaginatedResponse } from '../interfaces/pagination.interface';
 
-export abstract class PaginationService<T> {
+export abstract class PaginationService {
   constructor(
     protected readonly prisma: PrismaClient,
-    protected readonly defaultSortField = 'createdAt',
-    protected readonly defaultSearchField = 'title',
+    protected readonly defaultSortField = 'id',
+    protected readonly defaultSearchField = 'id',
   ) {}
 
-  public async getPaginatedResult(
-    model: any,
-    params: QueryParamsDto,
-    additionalWhere: Record<string, unknown> = {},
-  ): Promise<PaginatedResponse<T>> {
-    const { page, limit, sortBy, sortOrder, search, searchField } = params;
+  public async getPaginatedResult<T>(data: {
+    model?: any;
+    params?: QueryParamsDto;
+    additionalWhere?: Record<string, unknown>;
+    include?: Record<string, unknown>;
+  }): Promise<PaginatedResponse<T>> {
+    const { model, params, additionalWhere = {}, include = {} } = data;
 
-    const effectiveSortField = sortBy || this.defaultSortField;
-    const effectiveSearchField = searchField || this.defaultSearchField;
+    const effectiveSortField = params?.sortBy || this.defaultSortField;
+    const effectiveSearchField = params?.searchField || this.defaultSearchField;
 
     const where = {
       ...additionalWhere,
-      ...(search && { [effectiveSearchField]: { contains: search } }),
+      ...(params?.search && { [effectiveSearchField]: { contains: params.search } }),
     };
 
     const [items, total] = await this.prisma.$transaction([
       model.findMany({
         where,
-        skip: (page - 1) * limit,
-        take: limit,
-        orderBy: { [effectiveSortField]: sortOrder || 'asc' },
+        include,
+        skip: params?.page && (params.page - 1) * params.limit,
+        take: params?.limit,
+        orderBy: { [effectiveSortField]: params?.sortOrder || 'asc' },
       }),
       model.count({ where }),
     ]);
@@ -45,10 +47,10 @@ export abstract class PaginationService<T> {
     return {
       items,
       total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit),
-      hasMore: page * limit < total,
+      page: params?.page ?? 1,
+      limit: params?.limit ?? 10,
+      totalPages: Math.ceil(total / (params?.limit ?? 10)),
+      hasMore: (params?.page ?? 1) * (params?.limit ?? 10) < total,
     };
   }
 }

@@ -1,0 +1,11 @@
+model PostAuthor {
+  postId       Int     @map("post_id")
+  authorId     Int     @map("author_id")
+  isMainAuthor Boolean @default(false) @map("is_main_author")
+
+  post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+  author Author @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@id([postId, authorId])
+  @@map("post_authors")
+}

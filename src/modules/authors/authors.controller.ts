@@ -1,13 +1,18 @@
-import { Author } from '@/generated/prisma';
+import { QueryParamsDto } from '@/common/dto/query-params.dto';
+import { PaginatedResponse } from '@/common/interfaces/pagination.interface';
+import { ValidateQueryParamsPipe } from '@/common/pipes/validate-query-params.pipe';
+import { Author, Post as AuthorPost, Prisma } from '@/generated/prisma';
 import { CurrentUser } from '@/shared/decorators/current-user.decorator';
 import {
   Body,
   Controller,
   Delete,
   Get,
+  Param,
   ParseIntPipe,
   Patch,
   Post,
+  Query,
   UploadedFile,
   UseGuards,
   UseInterceptors,
@@ -27,8 +32,25 @@ export class AuthorsController {
   constructor(private readonly authorsService: AuthorsService) {}
 
   @Get()
-  public async getAll(): Promise<Author[]> {
-    return this.authorsService.getAll();
+  public async getAll(
+    @Query(new ValidateQueryParamsPipe<QueryParamsDto>(Object.keys(Prisma.AuthorScalarFieldEnum)))
+    query: QueryParamsDto,
+  ): Promise<PaginatedResponse<Author>> {
+    return this.authorsService.getAll(query);
+  }
+
+  @Get(':authorId')
+  public async getOne(@Param('authorId', ParseIntPipe) authorId: number): Promise<Author | null> {
+    return this.authorsService.getOne(authorId);
+  }
+
+  @Get(':authorId/posts')
+  public async getAuthorPosts(
+    @Query(new ValidateQueryParamsPipe<QueryParamsDto>(Object.keys(Prisma.PostScalarFieldEnum)))
+    query: QueryParamsDto,
+    @Param('authorId', ParseIntPipe) authorId: number,
+  ): Promise<PaginatedResponse<AuthorPost>> {
+    return this.authorsService.getAuthorPosts(authorId, query);
   }
 
   @Post()

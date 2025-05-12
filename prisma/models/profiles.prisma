@@ -7,7 +7,7 @@ model Profile {
   avatarUrl String?   @map("avatar_url")
   birthdate DateTime?
 
-  userId Int  @unique
+  userId Int  @unique @map("user_id")
   user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("profiles")

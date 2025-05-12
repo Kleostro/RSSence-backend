@@ -1,4 +1,7 @@
-import { Author } from '@/generated/prisma';
+import { QueryParamsDto } from '@/common/dto/query-params.dto';
+import { PaginatedResponse } from '@/common/interfaces/pagination.interface';
+import { PaginationService } from '@/common/services/pagination.service';
+import { Author, Post as AuthorPost } from '@/generated/prisma';
 import { PrismaService } from '@/prisma.service';
 import { FileService } from '@/shared/services/file/file.service';
 import { Injectable } from '@nestjs/common';
@@ -10,16 +13,38 @@ import { UpdateAuthorDto } from './dto/update-author.dto';
 import { AuthorsUtilService } from './services/authors-util.service';
 
 @Injectable()
-export class AuthorsService {
+export class AuthorsService extends PaginationService {
   constructor(
-    private readonly prisma: PrismaService,
+    prisma: PrismaService,
     private readonly fileService: FileService,
     private readonly authorsUtilService: AuthorsUtilService,
     private readonly profilesUtilService: ProfilesUtilService,
-  ) {}
+  ) {
+    super(prisma, 'id', 'username');
+  }
 
-  public async getAll(): Promise<Author[]> {
-    return this.prisma.author.findMany();
+  public async getAll(params: QueryParamsDto): Promise<PaginatedResponse<Author>> {
+    return super.getPaginatedResult<Author>({
+      model: this.prisma.author,
+      params,
+    });
+  }
+
+  public async getOne(authorId: number): Promise<Author | null> {
+    return this.prisma.author.findFirst({ where: { id: authorId } });
+  }
+
+  public async getAuthorPosts(authorId: number, params: QueryParamsDto): Promise<PaginatedResponse<AuthorPost>> {
+    return super.getPaginatedResult<AuthorPost>({
+      model: this.prisma.post,
+      params,
+      additionalWhere: { authors: { some: { authorId } } },
+      include: {
+        authors: {
+          include: { author: true },
+        },
+      },
+    });
   }
 
   public async createOne(dto: CreateAuthorDto, userId: number, avatar?: Express.Multer.File): Promise<Author> {
@@ -51,28 +76,29 @@ export class AuthorsService {
   }
 
   public async deleteOne(userId: number): Promise<Author> {
-    await this.profilesUtilService.ensureProfileExists(userId);
     const author = await this.authorsUtilService.ensureAuthorExists({ userId });
 
-    const postsToUpdate = await this.prisma.post.findMany({
-      where: {
-        coauthorsIds: {
-          has: author.id,
-        },
+    const postAuthors = await this.prisma.postAuthor.findMany({
+      where: { authorId: author.id },
+      select: {
+        postId: true,
+        isMainAuthor: true,
       },
     });
-    const updatePromises = postsToUpdate.map((post) =>
-      this.prisma.post.update({
-        where: { id: post.id },
-        data: {
-          coauthorsIds: {
-            set: post.coauthorsIds.filter((id) => id !== author.id),
-          },
-        },
-      }),
-    );
 
-    await Promise.all(updatePromises);
+    const postDeletionPromises = postAuthors
+      .filter((pa) => pa.isMainAuthor)
+      .map(({ postId }) =>
+        this.prisma.post.delete({
+          where: { id: postId },
+        }),
+      );
+
+    await Promise.all(postDeletionPromises);
+
+    await this.prisma.postAuthor.deleteMany({
+      where: { authorId: author.id },
+    });
 
     return this.prisma.author.delete({ where: { userId } });
   }

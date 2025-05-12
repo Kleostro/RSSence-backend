@@ -1,18 +1,18 @@
 model Author {
-  id Int @id @default(autoincrement())
-
+  id        Int     @id @default(autoincrement())
   firstname String
   lastname  String
   username  String  @unique
   bio       String?
   avatarUrl String? @map("avatar_url")
 
-  userId Int  @unique
+  userId Int  @unique @map("user_id")
   user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  authoredPosts Post[] @relation("AuthorProfile")
+  posts PostAuthor[]
 
-  coauthoredPosts PostCoauthor[]
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("authors")
 }

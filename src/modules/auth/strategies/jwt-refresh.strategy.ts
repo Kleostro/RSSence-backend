@@ -1,7 +1,7 @@
 import { Request } from 'express';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 
-import { User } from '@/generated/prisma';
+import { FullUserInfoType } from '@/modules/users/types/types';
 import { UsersService } from '@/modules/users/users.service';
 import { ERROR_MESSAGES } from '@/shared/constants/error-message';
 import { JwtPayloadType } from '@/shared/types/jwt-payload';
@@ -24,7 +24,7 @@ export class JwtRefreshStrategy extends PassportStrategy(Strategy, 'jwt-refresh'
     });
   }
 
-  public async validate({ userId }: JwtPayloadType): Promise<User | null> {
+  public async validate({ userId }: JwtPayloadType): Promise<FullUserInfoType> {
     const user = await this.usersService.getOne({ id: Number(userId) });
 
     if (!user) {

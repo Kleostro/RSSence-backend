@@ -5,7 +5,7 @@ import {
   Controller,
   Delete,
   Get,
-  ParseIntPipe,
+  Param,
   Patch,
   Post,
   UploadedFile,
@@ -16,6 +16,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiTags } from '@nestjs/swagger';
 
 import { JwtAccessGuard } from '../auth/guards/jwt-acess.guard';
+import { FullUserInfoType } from '../users/types/types';
 import { AVATAR_VALIDATION_PIPE } from './constants/file-pipe-builders';
 import { CheckUsernameDto } from './dto/check-username';
 import { CreateProfileDto } from './dto/create-profile.dto';
@@ -34,15 +35,20 @@ export class ProfilesController {
     return this.profilesService.getAll();
   }
 
+  @Get(':username')
+  public async getOne(@Param('username') username: string): Promise<Profile | null> {
+    return this.profilesService.getOne({ username });
+  }
+
   @profilesSwagger.ApiCreateMeProfile()
   @Post()
   @UseInterceptors(FileInterceptor('avatar'))
   public async createOne(
     @Body() createProfileDto: CreateProfileDto,
-    @CurrentUser('id', ParseIntPipe) userId: number,
+    @CurrentUser() currentUser: FullUserInfoType,
     @UploadedFile(AVATAR_VALIDATION_PIPE) avatar: Express.Multer.File,
   ): Promise<Profile> {
-    return this.profilesService.createOne(createProfileDto, userId, avatar);
+    return this.profilesService.createOne(createProfileDto, currentUser, avatar);
   }
 
   @profilesSwagger.ApiUpdateMeProfile()
@@ -50,16 +56,16 @@ export class ProfilesController {
   @UseInterceptors(FileInterceptor('avatar'))
   public async updateOne(
     @Body() updateProfileDto: UpdateProfileDto,
-    @CurrentUser('id', ParseIntPipe) userId: number,
+    @CurrentUser() currentUser: FullUserInfoType,
     @UploadedFile(AVATAR_VALIDATION_PIPE) avatar?: Express.Multer.File,
   ): Promise<Profile> {
-    return this.profilesService.updateOne(updateProfileDto, userId, avatar);
+    return this.profilesService.updateOne(updateProfileDto, currentUser, avatar);
   }
 
   @profilesSwagger.ApiDeleteMeProfile()
   @Delete()
-  public async deleteOne(@CurrentUser('id', ParseIntPipe) userId: number): Promise<Profile> {
-    return this.profilesService.deleteOne(userId);
+  public async deleteOne(@CurrentUser() currentUser: FullUserInfoType): Promise<Profile> {
+    return this.profilesService.deleteOne(currentUser);
   }
 
   @profilesSwagger.ApiCheckAvailableUsername()

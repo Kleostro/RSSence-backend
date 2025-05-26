@@ -1,6 +1,6 @@
 import * as bcrypt from 'bcryptjs';
 
-import { PrismaService } from '@/prisma.service';
+import { PrismaService } from '@/prisma/prisma.service';
 import { ROLES } from '@/shared/constants/roles';
 import { Logger } from '@nestjs/common';
 

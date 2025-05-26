@@ -1,5 +1,6 @@
 import { env } from 'process';
 
+import { PrismaModule } from '@/prisma/prisma.module';
 import { ImagesModule } from '@/shared/modules/images/images.module';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { Module } from '@nestjs/common';
@@ -13,6 +14,7 @@ import { AppGateway } from './app.gateway';
   imports: [
     AuthModule,
     ImagesModule,
+    PrismaModule,
     ConfigModule.forRoot({ isGlobal: true }),
     JwtModule.register({ global: true }),
     MailerModule.forRoot({

@@ -9,7 +9,7 @@ import { ApiTags } from '@nestjs/swagger';
 import { JwtAccessGuard } from '../auth/guards/jwt-acess.guard';
 import { CheckEmailDto } from './dto/check-email.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { UserWithRelationsWithoutPassword } from './types/types';
+import { FullUserInfoType } from './types/types';
 import * as usersController from './users-controller-swagger.decorators';
 import { UsersService } from './users.service';
 
@@ -29,21 +29,15 @@ export class UsersController {
   @usersController.ApiGetCurrentUser()
   @UseGuards(JwtAccessGuard)
   @Get('me')
-  public async getCurrentUser(@CurrentUser('id', ParseIntPipe) id: number): Promise<UserWithRelationsWithoutPassword> {
-    const user = await this.usersService.getOne({ id });
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { hashedPassword, ...userWithoutPassword } = user;
-    return userWithoutPassword;
+  public async getCurrentUser(@CurrentUser('id', ParseIntPipe) id: number): Promise<FullUserInfoType> {
+    return this.usersService.getOne({ id });
   }
 
   @usersController.ApiGetOneUser()
   @UseGuards(JwtAccessGuard)
   @Get(':userId')
-  public async getOne(@Param('userId', ParseIntPipe) id: number): Promise<UserWithRelationsWithoutPassword> {
-    const user = await this.usersService.getOne({ id });
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { hashedPassword, ...userWithoutPassword } = user;
-    return userWithoutPassword;
+  public async getOne(@Param('userId', ParseIntPipe) id: number): Promise<FullUserInfoType> {
+    return this.usersService.getOne({ id });
   }
 
   @usersController.ApiUpdateCurrentUser()

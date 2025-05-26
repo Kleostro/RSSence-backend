@@ -6,8 +6,8 @@ model User {
 
   roles UserRole[]
 
-  profile Profile?
-  author  Author?
+  profile         Profile? @relation(fields: [profileUsername], references: [username], onDelete: Cascade)
+  profileUsername String?  @unique @map("profile_username")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")

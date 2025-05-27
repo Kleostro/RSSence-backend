@@ -1,5 +1,6 @@
 model Profile {
-  id        Int       @id @default(autoincrement())
+  id Int @id @default(autoincrement())
+
   firstname String
   lastname  String
   username  String    @unique
@@ -7,8 +8,10 @@ model Profile {
   avatarUrl String?   @map("avatar_url")
   birthdate DateTime?
 
-  userId Int  @unique @map("user_id")
-  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User? @relation
+
+  author         Author? @relation("AuthorToProfile", fields: [authorUsername], references: [username])
+  authorUsername String? @unique @map("author_username")
 
   @@map("profiles")
 }

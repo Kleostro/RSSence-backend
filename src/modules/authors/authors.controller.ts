@@ -9,7 +9,6 @@ import {
   Delete,
   Get,
   Param,
-  ParseIntPipe,
   Patch,
   Post,
   Query,
@@ -21,6 +20,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 
 import { JwtAccessGuard } from '../auth/guards/jwt-acess.guard';
 import { AVATAR_VALIDATION_PIPE } from '../profiles/constants/file-pipe-builders';
+import { FullUserInfoType } from '../users/types/types';
 import { AuthorsService } from './authors.service';
 import { CheckUsernameDto } from './dto/check-username';
 import { CreateAuthorDto } from './dto/create-author.dto';
@@ -39,43 +39,43 @@ export class AuthorsController {
     return this.authorsService.getAll(query);
   }
 
-  @Get(':authorId')
-  public async getOne(@Param('authorId', ParseIntPipe) authorId: number): Promise<Author | null> {
-    return this.authorsService.getOne(authorId);
+  @Get(':username')
+  public async getOne(@Param('username') username: string): Promise<Author | null> {
+    return this.authorsService.getOne(username);
   }
 
-  @Get(':authorId/posts')
+  @Get(':username/posts')
   public async getAuthorPosts(
     @Query(new ValidateQueryParamsPipe<QueryParamsDto>(Object.keys(Prisma.PostScalarFieldEnum)))
     query: QueryParamsDto,
-    @Param('authorId', ParseIntPipe) authorId: number,
+    @Param('username') username: string,
   ): Promise<PaginatedResponse<AuthorPost>> {
-    return this.authorsService.getAuthorPosts(authorId, query);
+    return this.authorsService.getAuthorPosts(username, query);
   }
 
   @Post()
   @UseInterceptors(FileInterceptor('avatar'))
   public async createOne(
     @Body() dto: CreateAuthorDto,
-    @CurrentUser('id', ParseIntPipe) userId: number,
+    @CurrentUser() currentUser: FullUserInfoType,
     @UploadedFile(AVATAR_VALIDATION_PIPE) avatar: Express.Multer.File,
   ): Promise<Author> {
-    return this.authorsService.createOne(dto, userId, avatar);
+    return this.authorsService.createOne(dto, currentUser, avatar);
   }
 
-  @Patch()
+  @Patch(':username')
   @UseInterceptors(FileInterceptor('avatar'))
   public async updateOne(
     @Body() updateAuthorDto: UpdateAuthorDto,
-    @CurrentUser('id', ParseIntPipe) userId: number,
+    @Param('username') username: string,
     @UploadedFile(AVATAR_VALIDATION_PIPE) avatar?: Express.Multer.File,
   ): Promise<Author> {
-    return this.authorsService.updateOne(updateAuthorDto, userId, avatar);
+    return this.authorsService.updateOne(updateAuthorDto, username, avatar);
   }
 
-  @Delete()
-  public async deleteOne(@CurrentUser('id', ParseIntPipe) userId: number): Promise<Author> {
-    return this.authorsService.deleteOne(userId);
+  @Delete(':username')
+  public async deleteOne(@Param('username') username: string): Promise<Author> {
+    return this.authorsService.deleteOne(username);
   }
 
   @Post('username-check')

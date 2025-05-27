@@ -12,6 +12,7 @@ export const ERROR_MESSAGES = {
   INVALID_ROLE: 'Invalid role',
   USER_HAS_ROLE: 'User already has this role',
   AUTHOR_NOT_FOUND: 'Author not found',
+  AUTHOR_EXISTS: 'Author already exists',
   IMAGE_NOT_FOUND: 'Image not found',
   IMAGE_EXISTS: 'Image already exists',
   IMAGE_DELETE_FAILED: 'Image delete failed',

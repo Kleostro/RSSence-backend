@@ -1,13 +1,14 @@
 model Author {
-  id        Int     @id @default(autoincrement())
+  id Int @id @default(autoincrement())
+
   firstname String
   lastname  String
   username  String  @unique
   bio       String?
   avatarUrl String? @map("avatar_url")
 
-  userId Int  @unique @map("user_id")
-  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  profile         Profile? @relation("AuthorToProfile")
+  profileUsername String?  @unique @map("profile_username")
 
   posts PostAuthor[]
 

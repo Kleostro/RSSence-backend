@@ -1,6 +1,7 @@
 import { Response } from 'express';
 
 import { User } from '@/generated/prisma';
+import { PrismaService } from '@/prisma/prisma.service';
 import { ERROR_MESSAGES } from '@/shared/constants/error-message';
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 
@@ -24,6 +25,7 @@ export class AuthService {
     private readonly passwordService: PasswordService,
     private readonly emailService: EmailService,
     private readonly tokenService: TokenService,
+    private readonly prisma: PrismaService,
   ) {}
 
   public async register({ email, password }: AuthDto, res: Response): Promise<TokensDto> {
@@ -36,7 +38,6 @@ export class AuthService {
 
   public async login({ email, password }: AuthDto, res: Response): Promise<TokensDto> {
     const user = await this.validateUser(email, password);
-
     return this.generateAndSetTokens(user.id, res);
   }
 
@@ -80,7 +81,7 @@ export class AuthService {
   }
 
   private async validateUser(email: string, pass: string): Promise<User> {
-    const user = await this.usersService.getOne({ email });
+    const user = await this.prisma.user.findFirst({ where: { email } });
 
     if (!user) {
       throw new NotFoundException(ERROR_MESSAGES.USER_NOT_FOUND);

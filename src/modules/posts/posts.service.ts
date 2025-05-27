@@ -2,18 +2,16 @@ import { QueryParamsDto } from '@/common/dto/query-params.dto';
 import { PaginatedResponse } from '@/common/interfaces/pagination.interface';
 import { PaginationService } from '@/common/services/pagination.service';
 import { Post as AuthorPost } from '@/generated/prisma';
-import { PrismaService } from '@/prisma.service';
+import { PrismaService } from '@/prisma/prisma.service';
+import { ERROR_MESSAGES } from '@/shared/constants/error-message';
 import { Injectable, NotFoundException } from '@nestjs/common';
 
-import { AuthorsUtilService } from '../authors/services/authors-util.service';
+import { FullUserInfoType } from '../users/types/types';
 import { CreatePostDto } from './dto/create-post.dto';
 
 @Injectable()
 export class PostsService extends PaginationService {
-  constructor(
-    prisma: PrismaService,
-    private readonly authorsUtilService: AuthorsUtilService,
-  ) {
+  constructor(prisma: PrismaService) {
     super(prisma, 'id', 'title');
   }
 
@@ -40,17 +38,19 @@ export class PostsService extends PaginationService {
     });
   }
 
-  public async createOne(createPostDto: CreatePostDto, userId: number): Promise<AuthorPost> {
-    const author = await this.authorsUtilService.ensureAuthorExists({ userId });
-    const coauthorIds = this.getUniqueCoauthorIds(createPostDto.coauthorIds, author.id);
+  public async createOne(createPostDto: CreatePostDto, currentUser: FullUserInfoType): Promise<AuthorPost> {
+    const { author } = currentUser;
 
-    if (coauthorIds.length > 0) {
-      await this.validateCoauthors(coauthorIds);
+    if (!author) {
+      throw new NotFoundException(ERROR_MESSAGES.AUTHOR_NOT_FOUND);
     }
 
+    const coauthorIds = this.getUniqueCoauthorIds(createPostDto.coauthorIds, author.id);
+    const coauthors = await this.prisma.author.findMany({ where: { id: { in: coauthorIds } } });
+
     const authorsData = [
-      { authorId: author.id, isMainAuthor: true },
-      ...coauthorIds.map((id) => ({ authorId: id, isMainAuthor: false })),
+      { authorUsername: author.username, isMainAuthor: true },
+      ...coauthors.map((coauthor) => ({ authorUsername: coauthor.username, isMainAuthor: false })),
     ];
 
     return this.prisma.post.create({
@@ -76,10 +76,6 @@ export class PostsService extends PaginationService {
 
   private getUniqueCoauthorIds(coauthorIds: number[] | undefined, authorId: number): number[] {
     return coauthorIds ? Array.from(new Set(coauthorIds.filter((id) => id !== authorId))) : [];
-  }
-
-  private async validateCoauthors(coauthorIds: number[]): Promise<void> {
-    await Promise.all(coauthorIds.map((id) => this.authorsUtilService.ensureAuthorExists({ id })));
   }
 
   private async ensurePostExists(postId: number): Promise<AuthorPost> {

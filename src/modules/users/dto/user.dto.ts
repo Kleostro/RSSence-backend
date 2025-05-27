@@ -1,7 +1,6 @@
-import { User } from '@/generated/prisma';
 import { ApiProperty } from '@nestjs/swagger';
 
-export class UserDto implements User {
+export class UserDto {
   @ApiProperty()
   public id!: number;
 

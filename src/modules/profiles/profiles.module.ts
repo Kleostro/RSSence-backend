@@ -1,13 +1,14 @@
-import { PrismaService } from '@/prisma.service';
 import { FileService } from '@/shared/services/file/file.service';
 import { Module } from '@nestjs/common';
 
+import { AuthorsModule } from '../authors/authors.module';
 import { ProfilesController } from './profiles.controller';
 import { ProfilesService } from './profiles.service';
-import { ProfilesUtilService } from './services/profiles-util.service';
 
 @Module({
+  imports: [AuthorsModule],
   controllers: [ProfilesController],
-  providers: [ProfilesService, PrismaService, FileService, ProfilesUtilService],
+  providers: [ProfilesService, FileService],
+  exports: [ProfilesService, AuthorsModule],
 })
 export class ProfilesModule {}

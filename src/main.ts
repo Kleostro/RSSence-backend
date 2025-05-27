@@ -11,7 +11,7 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app/app.module';
 import { AllExceptionsFilter } from './core/filters/exception.filter';
 import { seedDatabase } from './core/seeds/seedDataBase.seed';
-import { PrismaService } from './prisma.service';
+import { PrismaService } from './prisma/prisma.service';
 
 // eslint-disable-next-line max-lines-per-function
 async function bootstrap(): Promise<void> {

@@ -1,12 +1,12 @@
 import { User, UserRole } from '@/generated/prisma';
-import { PrismaService } from '@/prisma.service';
+import { PrismaService } from '@/prisma/prisma.service';
 import { ERROR_MESSAGES } from '@/shared/constants/error-message';
 import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 
 import { RolesService } from '../roles/roles.service';
 import { GetUserDto } from './dto/get-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { UserWithRelations } from './types/types';
+import { FullUserInfoType } from './types/types';
 
 @Injectable()
 export class UsersService {
@@ -15,23 +15,38 @@ export class UsersService {
     private readonly rolesService: RolesService,
   ) {}
 
-  public async getOne({ id, email }: GetUserDto): Promise<UserWithRelations> {
+  public async getOne({ id, email }: GetUserDto): Promise<FullUserInfoType> {
     if (!id && !email) {
       throw new BadRequestException(ERROR_MESSAGES.INVALID_CREDENTIALS);
     }
 
     const user = await this.prisma.user.findFirst({
       where: { id, email },
-      include: { roles: { include: { role: true } }, author: true, profile: true },
+      include: { roles: { include: { role: true } } },
+      omit: { hashedPassword: true },
     });
 
     if (!user) {
       throw new NotFoundException(ERROR_MESSAGES.USER_NOT_FOUND);
     }
 
+    let profile = null;
+
+    if (user.profileUsername) {
+      profile = await this.prisma.profile.findFirst({ where: { username: user.profileUsername } });
+    }
+
+    let author = null;
+
+    if (profile && profile.authorUsername) {
+      author = await this.prisma.author.findFirst({ where: { username: profile.authorUsername } });
+    }
+
     return {
       ...user,
       roles: user.roles.map((userRole) => userRole.role.name),
+      profile,
+      author,
     };
   }
 

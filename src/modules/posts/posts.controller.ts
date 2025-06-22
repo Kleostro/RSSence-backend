@@ -2,11 +2,12 @@ import { QueryParamsDto } from '@/common/dto/query-params.dto';
 import { PaginatedResponse } from '@/common/interfaces/pagination.interface';
 import { Post as AuthorPost } from '@/generated/prisma';
 import { CurrentUser } from '@/shared/decorators/current-user.decorator';
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Query, UseGuards } from '@nestjs/common';
 
 import { JwtAccessGuard } from '../auth/guards/jwt-acess.guard';
 import { FullUserInfoType } from '../users/types/types';
 import { CreatePostDto } from './dto/create-post.dto';
+import { UpdatePostDto } from './dto/update-post.dto';
 import { PostsService } from './posts.service';
 
 @UseGuards(JwtAccessGuard)
@@ -30,6 +31,15 @@ export class PostsController {
     @Body() createPostDto: CreatePostDto,
   ): Promise<AuthorPost> {
     return this.postsService.createOne(createPostDto, currentUser);
+  }
+
+  @Patch(':postId')
+  public async update(
+    @Param('postId', ParseIntPipe) postId: number,
+    @CurrentUser() currentUser: FullUserInfoType,
+    @Body() updatePostDto: UpdatePostDto,
+  ): Promise<AuthorPost> {
+    return this.postsService.updateOne(postId, updatePostDto, currentUser);
   }
 
   // TBD: Add a guard to check if the user is the author of the post

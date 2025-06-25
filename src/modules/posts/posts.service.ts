@@ -4,7 +4,7 @@ import { PaginationService } from '@/common/services/pagination.service';
 import { Author, Post as AuthorPost } from '@/generated/prisma';
 import { PrismaService } from '@/prisma/prisma.service';
 import { ERROR_MESSAGES } from '@/shared/constants/error-message';
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 
 import { FullUserInfoType } from '../users/types/types';
 import { CreatePostDto } from './dto/create-post.dto';
@@ -160,9 +160,25 @@ export class PostsService extends PaginationService {
     });
   }
 
-  public async deleteById(postId: number): Promise<AuthorPost> {
-    await this.ensurePostExists(postId);
+  public async deleteById(postId: number, currentUser: FullUserInfoType): Promise<AuthorPost> {
+    const { author } = currentUser;
+    if (!author) {
+      throw new NotFoundException(ERROR_MESSAGES.AUTHOR_NOT_FOUND);
+    }
+
+    await this.isPostAuthor(author.username, postId);
     return this.prisma.post.delete({ where: { id: postId } });
+  }
+
+  private async isPostAuthor(authorUsername: string, postId: number): Promise<boolean> {
+    await this.ensurePostExists(postId);
+
+    const postAuthor = await this.prisma.postAuthor.findFirst({ where: { authorUsername, postId } });
+    if (!postAuthor) {
+      throw new ForbiddenException(ERROR_MESSAGES.NOT_POST_AUTHOR);
+    }
+
+    return true;
   }
 
   private getUniqueCoauthorIds(coauthorIds: number[] | undefined, authorId: number): number[] {

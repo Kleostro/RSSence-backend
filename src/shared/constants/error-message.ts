@@ -16,4 +16,5 @@ export const ERROR_MESSAGES = {
   IMAGE_NOT_FOUND: 'Image not found',
   IMAGE_EXISTS: 'Image already exists',
   IMAGE_DELETE_FAILED: 'Image delete failed',
+  NOT_POST_AUTHOR: 'You are not the author of this post',
 } as const;

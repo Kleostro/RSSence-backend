@@ -42,9 +42,11 @@ export class PostsController {
     return this.postsService.updateOne(postId, updatePostDto, currentUser);
   }
 
-  // TBD: Add a guard to check if the user is the author of the post
   @Delete(':id')
-  public async deleteById(@Param('id', ParseIntPipe) postId: number): Promise<AuthorPost> {
-    return this.postsService.deleteById(postId);
+  public async deleteById(
+    @Param('id', ParseIntPipe) postId: number,
+    @CurrentUser() currentUser: FullUserInfoType,
+  ): Promise<AuthorPost> {
+    return this.postsService.deleteById(postId, currentUser);
   }
 }

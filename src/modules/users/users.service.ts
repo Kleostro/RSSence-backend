@@ -1,19 +1,25 @@
+import { QueryParamsDto } from '@/common/dto/query-params.dto';
+import { PaginatedResponse } from '@/common/interfaces/pagination.interface';
+import { PaginationService } from '@/common/services/pagination.service';
 import { User, UserRole } from '@/generated/prisma';
 import { PrismaService } from '@/prisma/prisma.service';
 import { ERROR_MESSAGES } from '@/shared/constants/error-message';
+import { ROLES } from '@/shared/constants/roles';
 import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 
 import { RolesService } from '../roles/roles.service';
 import { GetUserDto } from './dto/get-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { FullUserInfoType } from './types/types';
+import { FullUserInfoType, UserWithRelationsWithoutPassword, UserWithRoles } from './types/types';
 
 @Injectable()
-export class UsersService {
+export class UsersService extends PaginationService {
   constructor(
-    private readonly prisma: PrismaService,
+    prisma: PrismaService,
     private readonly rolesService: RolesService,
-  ) {}
+  ) {
+    super(prisma, 'id', 'email');
+  }
 
   public async getOne({ id, email }: GetUserDto): Promise<FullUserInfoType> {
     if (!id && !email) {
@@ -54,16 +60,27 @@ export class UsersService {
     await this.isEmailExist(email);
 
     const user = await this.prisma.user.create({ data: { email, hashedPassword } });
+    await this.addRoleToUser(user.id, ROLES.USER);
     return user;
   }
 
-  public async getAll(): Promise<User[]> {
-    const users = await this.prisma.user.findMany({ include: { roles: { include: { role: true } } } });
+  public async getAll(params: QueryParamsDto): Promise<PaginatedResponse<UserWithRelationsWithoutPassword>> {
+    const result = await super.getPaginatedResult<UserWithRoles>({
+      model: this.prisma.user,
+      params,
+      include: { roles: { include: { role: true } }, profile: { include: { author: true } } },
+    });
 
-    return users.map((user) => ({
-      ...user,
-      roles: user.roles.map((userRole) => userRole.role.name),
-    }));
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const safeUsers = result.items.map(({ hashedPassword, ...rest }) => rest);
+
+    return {
+      ...result,
+      items: safeUsers.map((user) => ({
+        ...user,
+        roles: user.roles.sort((a, b) => a.role.priority - b.role.priority).map((userRole) => userRole.role.name),
+      })),
+    };
   }
 
   public async updateOne(dto: UpdateUserDto, userId: number): Promise<User | null> {
@@ -79,6 +96,7 @@ export class UsersService {
 
   public async deleteOne(userId: number): Promise<User> {
     await this.ensureUserExists(userId);
+    await this.prisma.userRole.deleteMany({ where: { userId } });
     return this.prisma.user.delete({ where: { id: userId } });
   }
 

@@ -8,4 +8,9 @@ export class CreateRoleDto {
   @IsNotEmpty()
   @IsString()
   public name!: string;
+
+  @ApiProperty({ required: true, default: 0 })
+  @IsDefined()
+  @IsNotEmpty()
+  public priority!: number;
 }

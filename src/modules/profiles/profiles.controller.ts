@@ -62,10 +62,9 @@ export class ProfilesController {
     return this.profilesService.updateOne(updateProfileDto, currentUser, avatar);
   }
 
-  @profilesSwagger.ApiDeleteMeProfile()
-  @Delete()
-  public async deleteOne(@CurrentUser() currentUser: FullUserInfoType): Promise<Profile> {
-    return this.profilesService.deleteOne(currentUser);
+  @Delete(':username')
+  public async deleteOne(@Param('username') username: string): Promise<Profile> {
+    return this.profilesService.deleteOne(username);
   }
 
   @profilesSwagger.ApiCheckAvailableUsername()

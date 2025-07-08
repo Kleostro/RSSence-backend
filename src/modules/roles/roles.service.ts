@@ -14,6 +14,10 @@ export class RolesService {
     return this.prisma.role.findMany({ include: { users: true } });
   }
 
+  public async getHierarchy(): Promise<{ name: string; priority: number }[]> {
+    return this.prisma.role.findMany({ orderBy: { priority: 'asc' }, select: { name: true, priority: true } });
+  }
+
   public async getOne({ id, name }: GetRoleDto): Promise<Role> {
     if (!id && !name) {
       throw new BadRequestException(ERROR_MESSAGES.INVALID_ROLE);

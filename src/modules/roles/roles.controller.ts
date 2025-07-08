@@ -3,9 +3,9 @@ import { Role } from '@/generated/prisma';
 import { ROLES } from '@/shared/constants/roles';
 import { Roles } from '@/shared/decorators/roles.decorator';
 import { Body, Controller, Delete, Get, Param, Post, UseGuards } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
 import { ApiTags } from '@nestjs/swagger';
 
+import { JwtAccessGuard } from '../auth/guards/jwt-acess.guard';
 import { CreateRoleDto } from './dto/create-role.dto';
 import * as rolesController from './roles-controller-swagger.decorators';
 import { RolesService } from './roles.service';
@@ -16,15 +16,20 @@ export class RolesController {
   constructor(private readonly rolesService: RolesService) {}
 
   @rolesController.ApiGetAllRoles()
-  @UseGuards(AuthGuard('jwt-access'), RoleGuard)
+  @UseGuards(JwtAccessGuard, RoleGuard)
   @Roles(ROLES.ADMIN)
   @Get()
   public async getAll(): Promise<Role[]> {
     return this.rolesService.getAll();
   }
 
+  @Get('/hierarchy')
+  public async getHierarchy(): Promise<{ name: string; priority: number }[]> {
+    return this.rolesService.getHierarchy();
+  }
+
   @rolesController.ApiGetOneRole()
-  @UseGuards(AuthGuard('jwt-access'), RoleGuard)
+  @UseGuards(JwtAccessGuard, RoleGuard)
   @Roles(ROLES.ADMIN)
   @Get(':roleName')
   public async getOne(@Param('roleName') name: string): Promise<Role> {
@@ -32,7 +37,7 @@ export class RolesController {
   }
 
   @rolesController.ApiCreateRole()
-  @UseGuards(AuthGuard('jwt-access'), RoleGuard)
+  @UseGuards(JwtAccessGuard, RoleGuard)
   @Roles(ROLES.ADMIN)
   @Post()
   public async createOne(@Body() dto: CreateRoleDto): Promise<Role> {
@@ -40,7 +45,7 @@ export class RolesController {
   }
 
   @rolesController.ApiDeleteAllRoles()
-  @UseGuards(AuthGuard('jwt-access'), RoleGuard)
+  @UseGuards(JwtAccessGuard, RoleGuard)
   @Roles(ROLES.ADMIN)
   @Delete()
   public async deleteAll(): Promise<unknown> {
@@ -48,7 +53,7 @@ export class RolesController {
   }
 
   @rolesController.ApiDeleteOneRole()
-  @UseGuards(AuthGuard('jwt-access'), RoleGuard)
+  @UseGuards(JwtAccessGuard, RoleGuard)
   @Roles(ROLES.ADMIN)
   @Delete(':roleName')
   public async deleteOne(@Param('roleName') name: string): Promise<Role> {

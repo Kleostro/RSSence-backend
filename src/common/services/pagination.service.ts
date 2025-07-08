@@ -31,7 +31,7 @@ export abstract class PaginationService {
 
     const where = {
       ...additionalWhere,
-      ...(params?.search && { [effectiveSearchField]: { contains: params.search } }),
+      ...(params?.search && { [effectiveSearchField]: { contains: params.search, mode: 'insensitive' } }),
     };
 
     try {

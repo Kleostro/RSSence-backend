@@ -77,10 +77,25 @@ export class ProfilesService {
     return this.prisma.profile.update({ where: { id: currentUser.profile.id }, data: { ...dto, avatarUrl } });
   }
 
-  public async deleteOne(currentUser: FullUserInfoType): Promise<Profile> {
-    const { profile } = currentUser;
-    if (!profile) {
+  private hasProfile(username: string): Promise<Profile | null> {
+    return this.prisma.profile.findFirst({ where: { username } });
+  }
+
+  private async ensureProfileExists(username: string): Promise<Profile> {
+    const hasProfile = await this.hasProfile(username);
+    if (!hasProfile) {
       throw new NotFoundException(ERROR_MESSAGES.PROFILE_NOT_FOUND);
+    }
+
+    return hasProfile;
+  }
+
+  public async deleteOne(username: string): Promise<Profile> {
+    const profile = await this.ensureProfileExists(username);
+    const currentUser = await this.prisma.user.findUnique({ where: { profileUsername: profile.username } });
+
+    if (!currentUser) {
+      throw new NotFoundException(ERROR_MESSAGES.USER_NOT_FOUND);
     }
 
     return this.prisma.$transaction(async (tx) => {

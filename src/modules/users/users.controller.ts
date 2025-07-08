@@ -1,15 +1,17 @@
+import { QueryParamsDto } from '@/common/dto/query-params.dto';
+import { PaginatedResponse } from '@/common/interfaces/pagination.interface';
 import { RoleGuard } from '@/core/guards/role.guard';
 import { User, UserRole } from '@/generated/prisma';
 import { ROLES } from '@/shared/constants/roles';
 import { CurrentUser } from '@/shared/decorators/current-user.decorator';
 import { Roles } from '@/shared/decorators/roles.decorator';
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 
 import { JwtAccessGuard } from '../auth/guards/jwt-acess.guard';
 import { CheckEmailDto } from './dto/check-email.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { FullUserInfoType } from './types/types';
+import { FullUserInfoType, UserWithRelationsWithoutPassword } from './types/types';
 import * as usersController from './users-controller-swagger.decorators';
 import { UsersService } from './users.service';
 
@@ -20,17 +22,17 @@ export class UsersController {
 
   @usersController.ApiGetAllUsers()
   @UseGuards(JwtAccessGuard, RoleGuard)
-  @Roles(ROLES.MODERATOR, ROLES.ADMIN)
+  @Roles(ROLES.ADMIN, ROLES.SUPER_ADMIN)
   @Get()
-  public async getAll(): Promise<User[]> {
-    return this.usersService.getAll();
+  public async getAll(@Query() query: QueryParamsDto): Promise<PaginatedResponse<UserWithRelationsWithoutPassword>> {
+    return this.usersService.getAll(query);
   }
 
   @usersController.ApiGetCurrentUser()
   @UseGuards(JwtAccessGuard)
   @Get('me')
-  public async getCurrentUser(@CurrentUser('id', ParseIntPipe) id: number): Promise<FullUserInfoType> {
-    return this.usersService.getOne({ id });
+  public getCurrentUser(@CurrentUser() currentUser: FullUserInfoType | null): FullUserInfoType | null {
+    return currentUser;
   }
 
   @usersController.ApiGetOneUser()
@@ -40,19 +42,7 @@ export class UsersController {
     return this.usersService.getOne({ id });
   }
 
-  @usersController.ApiUpdateCurrentUser()
-  @UseGuards(JwtAccessGuard)
-  @Patch('me')
-  public async updateCurrentUser(
-    @Body() updateUserDto: UpdateUserDto,
-    @CurrentUser('id', ParseIntPipe) userId: number,
-  ): Promise<User | null> {
-    return this.usersService.updateOne(updateUserDto, userId);
-  }
-
   @usersController.ApiUpdateOneUser()
-  @UseGuards(JwtAccessGuard, RoleGuard)
-  @Roles(ROLES.MODERATOR, ROLES.ADMIN)
   @Patch(':userId')
   public async updateOne(
     @Body() updateUserDto: UpdateUserDto,
@@ -63,31 +53,23 @@ export class UsersController {
 
   @usersController.ApiDeleteAllUsers()
   @UseGuards(JwtAccessGuard, RoleGuard)
-  @Roles(ROLES.ADMIN)
+  @Roles(ROLES.ADMIN, ROLES.SUPER_ADMIN)
   @Delete()
   public async deleteAll(): Promise<unknown> {
     return this.usersService.deleteAll();
   }
 
-  @usersController.ApiDeleteCurrentUser()
-  @UseGuards(JwtAccessGuard)
-  @Delete('me')
-  public async deleteCurrentUser(@CurrentUser('id', ParseIntPipe) userId: number): Promise<User> {
-    return this.usersService.deleteOne(userId);
-  }
-
-  @usersController.ApiDeleteOneUser()
   @UseGuards(JwtAccessGuard, RoleGuard)
-  @Roles(ROLES.MODERATOR, ROLES.ADMIN)
+  @Roles(ROLES.ADMIN, ROLES.SUPER_ADMIN)
   @Delete(':userId')
   public async deleteOne(@Param('userId', ParseIntPipe) id: number): Promise<User> {
     return this.usersService.deleteOne(id);
   }
 
   @usersController.ApiAddRoleToUser()
-  @Post(':userId/roles/:roleName')
   @UseGuards(JwtAccessGuard, RoleGuard)
-  @Roles(ROLES.ADMIN)
+  @Roles(ROLES.ADMIN, ROLES.SUPER_ADMIN)
+  @Patch(':userId/roles/:roleName')
   public async addRole(
     @Param('userId', ParseIntPipe) userId: number,
     @Param('roleName') roleName: string,
@@ -96,9 +78,9 @@ export class UsersController {
   }
 
   @usersController.ApiRemoveRoleFromUser()
-  @Delete(':userId/roles/:roleName')
   @UseGuards(JwtAccessGuard, RoleGuard)
-  @Roles(ROLES.ADMIN)
+  @Roles(ROLES.ADMIN, ROLES.SUPER_ADMIN)
+  @Delete(':userId/roles/:roleName')
   public async removeRole(
     @Param('userId', ParseIntPipe) userId: number,
     @Param('roleName') roleName: string,

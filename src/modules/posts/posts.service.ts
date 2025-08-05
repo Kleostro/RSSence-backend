@@ -1,32 +1,42 @@
 import { QueryParamsDto } from '@/common/dto/query-params.dto';
 import { PaginatedResponse } from '@/common/interfaces/pagination.interface';
 import { PaginationService } from '@/common/services/pagination.service';
-import { Author, Post as AuthorPost } from '@/generated/prisma';
+import { Author, Post as AuthorPost, ModerationHistory, Moderator, PostHistory } from '@/generated/prisma';
 import { PrismaService } from '@/prisma/prisma.service';
 import { ERROR_MESSAGES } from '@/shared/constants/error-message';
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 
-import { FullUserInfoType } from '../users/types/types';
+import { ACTION_TYPE, POST_STATUS } from './constants/post';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
-
-interface CurrentPostAuthors {
-  authorUsername: string;
-  isMainAuthor: boolean;
-}
-
-interface CoauthorsList {
-  username: string;
-  isMainAuthor: boolean;
-}
+import { CoauthorsList, CurrentPostAuthors } from './interfaces/post-authors';
+import { ModerationPostsService } from './services/moderation-posts/moderation-posts.service';
+import { PostLogService } from './services/post-log/post-log.service';
 
 @Injectable()
 export class PostsService extends PaginationService {
-  constructor(prisma: PrismaService) {
+  constructor(
+    prisma: PrismaService,
+    private readonly moderationPostsService: ModerationPostsService,
+    private readonly postLogService: PostLogService,
+  ) {
     super(prisma, 'id', 'title');
   }
 
   public async getAll(params: QueryParamsDto): Promise<PaginatedResponse<AuthorPost>> {
+    return super.getPaginatedResult({
+      model: this.prisma.post,
+      params,
+      additionalWhere: params.filterField === 'status' ? { status: params.filter } : undefined,
+      include: {
+        authors: {
+          include: { author: true },
+        },
+      },
+    });
+  }
+
+  public async getSubmittedForModeration(params: QueryParamsDto): Promise<PaginatedResponse<AuthorPost>> {
     return super.getPaginatedResult({
       model: this.prisma.post,
       params,
@@ -35,7 +45,78 @@ export class PostsService extends PaginationService {
           include: { author: true },
         },
       },
+      additionalWhere: { status: POST_STATUS.SUBMITTED },
     });
+  }
+
+  public async submitForModeration(postId: number, author: Author): Promise<AuthorPost> {
+    const post = await this.ensurePostExists(postId);
+
+    const updatedPost = await this.prisma.$transaction(async (prisma) => {
+      const result = await prisma.post.update({
+        where: { id: postId },
+        data: { status: POST_STATUS.SUBMITTED },
+        include: {
+          authors: {
+            include: { author: true },
+          },
+        },
+      });
+
+      const description = `Post '${post.title}' submitted for moderation`;
+
+      await this.postLogService.logPostEvent(post, ACTION_TYPE.POST_SUBMITTED, author.username, description);
+      return result;
+    });
+
+    return updatedPost;
+  }
+
+  public async saveAsDraft(postId: number, author: Author): Promise<AuthorPost> {
+    const post = await this.ensurePostExists(postId);
+
+    const updatedPost = await this.prisma.$transaction(async (prisma) => {
+      const result = await prisma.post.update({
+        where: { id: postId },
+        data: { status: POST_STATUS.DRAFT },
+        include: {
+          authors: {
+            include: { author: true },
+          },
+        },
+      });
+
+      const description = `Post '${post.title}' saved as draft`;
+
+      await this.postLogService.logPostEvent(post, ACTION_TYPE.POST_UPDATED, author.username, description);
+      return result;
+    });
+
+    return updatedPost;
+  }
+
+  public async getPostHistory(postId: number): Promise<(ModerationHistory | PostHistory)[]> {
+    const post = await this.ensurePostExists(postId);
+    return this.moderationPostsService.getPostHistory(post);
+  }
+
+  public async approvePost(postId: number, moderator: Moderator): Promise<AuthorPost> {
+    const post = await this.ensurePostExists(postId);
+    return this.moderationPostsService.approvePost(post, moderator);
+  }
+
+  public async requestRevision(postId: number, comment: string, moderator: Moderator): Promise<AuthorPost> {
+    const post = await this.ensurePostExists(postId);
+    return this.moderationPostsService.requestRevision(post, comment, moderator);
+  }
+
+  public async rejectPost(
+    postId: number,
+    dto: { comment: string; reasons: string[] },
+    moderator: Moderator,
+  ): Promise<AuthorPost> {
+    const post = await this.ensurePostExists(postId);
+    return this.moderationPostsService.rejectPost(post, dto, moderator);
   }
 
   public async getById(postId: number): Promise<AuthorPost | null> {
@@ -49,14 +130,12 @@ export class PostsService extends PaginationService {
     });
   }
 
-  public async createOne(createPostDto: CreatePostDto, currentUser: FullUserInfoType): Promise<AuthorPost> {
-    const { author } = currentUser;
-
+  public async createOne(dto: CreatePostDto, author: Author | undefined): Promise<AuthorPost> {
     if (!author) {
       throw new NotFoundException(ERROR_MESSAGES.AUTHOR_NOT_FOUND);
     }
 
-    const coauthorIds = this.getUniqueCoauthorIds(createPostDto.coauthorIds, author.id);
+    const coauthorIds = this.getUniqueCoauthorIds(dto.coauthorIds, author.id);
     const coauthors = await this.prisma.author.findMany({ where: { id: { in: coauthorIds } } });
 
     const authorsData = [
@@ -64,10 +143,10 @@ export class PostsService extends PaginationService {
       ...coauthors.map((coauthor) => ({ authorUsername: coauthor.username, isMainAuthor: false })),
     ];
 
-    return this.prisma.post.create({
+    const post = await this.prisma.post.create({
       data: {
-        title: createPostDto.title,
-        content: createPostDto.content,
+        title: dto.title,
+        content: dto.content,
         authors: {
           create: authorsData,
         },
@@ -78,6 +157,18 @@ export class PostsService extends PaginationService {
         },
       },
     });
+
+    const newCoauthors = await this.createCoauthorsList(coauthorIds, author);
+    const coauthorsDiff = this.postLogService.getCoauthorsDiff([], newCoauthors.slice(1));
+    const changes: string[] = [];
+    if (coauthorsDiff.added.length) {
+      changes.push(`Added coauthors: ${coauthorsDiff.added.join(', ')}`);
+    }
+
+    const description = `Post '${post.title}' was created; ${changes.join('; ')}`;
+    await this.postLogService.logPostEvent(post, ACTION_TYPE.POST_CREATED, author.username, description);
+
+    return post;
   }
 
   private async createCoauthorsList(coauthorIds: number[], author: Author): Promise<CoauthorsList[]> {
@@ -96,27 +187,44 @@ export class PostsService extends PaginationService {
     });
   }
 
-  public async updateOne(
-    postId: number,
-    updatePostDto: UpdatePostDto,
-    currentUser: FullUserInfoType,
-  ): Promise<AuthorPost> {
-    const { author } = currentUser;
-
+  public async updateOne(postId: number, dto: UpdatePostDto, author: Author | undefined): Promise<AuthorPost> {
     if (!author) {
       throw new NotFoundException(ERROR_MESSAGES.AUTHOR_NOT_FOUND);
     }
 
-    await this.ensurePostExists(postId);
-
-    const newAuthors = await this.createCoauthorsList(updatePostDto.coauthorIds ?? [], author);
+    const oldPost = await this.ensurePostExists(postId);
     const currentAuthors = await this.getCurrentPostAuthors(postId);
 
+    const newAuthors = await this.createCoauthorsList(dto.coauthorIds ?? [], author);
     const newSet = new Set(newAuthors.map((a) => a.username));
     const currentSet = new Set(currentAuthors.map((a) => a.authorUsername));
     const toRemove = currentAuthors.filter((ca) => !newSet.has(ca.authorUsername));
     const toAdd = newAuthors.filter((a) => !currentSet.has(a.username));
-    return this.updateOneTransaction(postId, updatePostDto, toRemove, toAdd);
+
+    const updatedPost = await this.updateOneTransaction(postId, dto, toRemove, toAdd);
+
+    const diff = this.postLogService.getPostDiff(oldPost, updatedPost);
+    const coauthorsDiff = this.postLogService.getCoauthorsDiff(currentAuthors, newAuthors);
+
+    const changes: string[] = [];
+
+    if (diff.length) {
+      changes.push(...diff);
+    }
+
+    if (coauthorsDiff.added.length) {
+      changes.push(`Added coauthors: ${coauthorsDiff.added.join(', ')}`);
+    }
+
+    if (coauthorsDiff.removed.length) {
+      changes.push(`Removed coauthors: ${coauthorsDiff.removed.join(', ')}`);
+    }
+
+    const description = `Post '${updatedPost.title}' was updated; ${changes.join('; ')}`;
+
+    await this.postLogService.logPostEvent(updatedPost, ACTION_TYPE.POST_UPDATED, author.username, description);
+
+    return updatedPost;
   }
 
   private async updateOneTransaction(
@@ -160,14 +268,16 @@ export class PostsService extends PaginationService {
     });
   }
 
-  public async deleteById(postId: number, currentUser: FullUserInfoType): Promise<AuthorPost> {
-    const { author } = currentUser;
+  public async deleteById(postId: number, author: Author | undefined): Promise<AuthorPost> {
     if (!author) {
       throw new NotFoundException(ERROR_MESSAGES.AUTHOR_NOT_FOUND);
     }
 
     await this.isPostAuthor(author.username, postId);
-    return this.prisma.post.delete({ where: { id: postId } });
+
+    const deletedPost = await this.prisma.post.delete({ where: { id: postId } });
+
+    return deletedPost;
   }
 
   private async isPostAuthor(authorUsername: string, postId: number): Promise<boolean> {

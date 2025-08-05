@@ -31,4 +31,13 @@ export class QueryParamsDto {
   @IsString()
   @IsNotEmpty()
   public searchField?: string;
+
+  @IsOptional()
+  @IsString()
+  public filter?: string;
+
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  public filterField?: string;
 }

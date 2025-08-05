@@ -4,9 +4,15 @@ export class CreatePostDto {
   @IsDefined()
   @IsNotEmpty()
   @IsString()
-  @MinLength(3)
-  @MaxLength(64)
+  @MinLength(10)
+  @MaxLength(150)
   public title!: string;
-  public content?: string;
+
+  @IsDefined()
+  @IsNotEmpty()
+  @IsString()
+  @MinLength(50)
+  @MaxLength(5000)
+  public content!: string;
   public coauthorIds?: number[];
 }

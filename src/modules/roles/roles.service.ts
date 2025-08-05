@@ -45,6 +45,18 @@ export class RolesService {
   public async addRoleToUser(userId: number, name: string): Promise<UserRole> {
     const role = await this.getOne({ name });
     await this.userHasRole(userId, role.id);
+    if (name === 'MODERATOR') {
+      await this.prisma.moderator.upsert({
+        where: { userId },
+        update: {},
+        create: {
+          user: {
+            connect: { id: userId },
+          },
+        },
+      });
+    }
+
     return this.prisma.userRole.create({ data: { userId, roleId: role.id } });
   }
 

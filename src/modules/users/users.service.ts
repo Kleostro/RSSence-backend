@@ -48,10 +48,17 @@ export class UsersService extends PaginationService {
       author = await this.prisma.author.findFirst({ where: { username: profile.authorUsername } });
     }
 
+    let moderator = null;
+
+    if (user.moderatorId) {
+      moderator = await this.prisma.moderator.findFirst({ where: { id: user.moderatorId } });
+    }
+
     return {
       ...user,
       roles: user.roles.map((userRole) => userRole.role.name),
       profile,
+      moderator,
       author,
     };
   }

@@ -1,4 +1,4 @@
-import { Author, Profile, Role, User, UserRole } from '@/generated/prisma';
+import { Author, Moderator, Profile, Role, User, UserRole } from '@/generated/prisma';
 
 export type UserWithoutPassword = Omit<User, 'hashedPassword'>;
 
@@ -21,6 +21,7 @@ export type FullUserInfoType = Omit<
     roles: string[];
     profile: Profile | null;
     author: Author | null;
+    moderator: Moderator | null;
   },
   'hashedPassword'
 >;

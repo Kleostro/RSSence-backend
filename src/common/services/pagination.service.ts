@@ -19,40 +19,44 @@ export abstract class PaginationService {
 
   // eslint-disable-next-line max-lines-per-function
   public async getPaginatedResult<T>(data: {
-    model?: any;
-    params?: QueryParamsDto;
+    model: any;
+    params: QueryParamsDto;
     additionalWhere?: Record<string, unknown>;
     include?: Record<string, unknown>;
   }): Promise<PaginatedResponse<T>> {
-    const { model, params, additionalWhere = {}, include = {} } = data;
+    const { page, limit, sortBy, sortOrder, search, searchField } = data.params;
 
-    const effectiveSortField = params?.sortBy || this.defaultSortField;
-    const effectiveSearchField = params?.searchField || this.defaultSearchField;
+    const effectiveSortField = sortBy || this.defaultSortField;
+    const effectiveSearchField = searchField || this.defaultSearchField;
+
+    const baseWhere = {
+      ...(search && { [effectiveSearchField]: { contains: search, mode: 'insensitive' } }),
+    };
 
     const where = {
-      ...additionalWhere,
-      ...(params?.search && { [effectiveSearchField]: { contains: params.search, mode: 'insensitive' } }),
+      ...baseWhere,
+      ...data.additionalWhere,
     };
 
     try {
       const [items, total] = await this.prisma.$transaction([
-        model.findMany({
+        data.model.findMany({
           where,
-          include,
-          skip: params?.page && (params.page - 1) * params.limit,
-          take: params?.limit,
-          orderBy: { [effectiveSortField]: params?.sortOrder || 'asc' },
+          include: data.include,
+          skip: (page - 1) * limit,
+          take: limit,
+          orderBy: { [effectiveSortField]: sortOrder },
         }),
-        model.count({ where }),
+        data.model.count({ where }),
       ]);
 
       return {
         items,
         total,
-        page: params?.page ?? 1,
-        limit: params?.limit ?? 10,
-        totalPages: Math.ceil(total / (params?.limit ?? 10)),
-        hasMore: (params?.page ?? 1) * (params?.limit ?? 10) < total,
+        page: page ?? 1,
+        limit: limit ?? 10,
+        totalPages: Math.ceil(total / (limit ?? 10)),
+        hasMore: (page ?? 1) * (limit ?? 10) < total,
       };
     } catch (error) {
       // eslint-disable-next-line no-console

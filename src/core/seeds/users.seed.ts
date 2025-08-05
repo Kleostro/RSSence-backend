@@ -35,12 +35,14 @@ const USERS_TO_CREATE: SeedUser[] = [
   },
 ];
 
+// eslint-disable-next-line max-lines-per-function
 export const seedUsers = async (prisma: PrismaService): Promise<void> => {
   logger.log('Seeding users...');
   const allRoles = await prisma.role.findMany();
   const roleMap = Object.fromEntries(allRoles.map((role) => [role.name, role]));
 
   await Promise.all(
+    // eslint-disable-next-line max-lines-per-function
     USERS_TO_CREATE.map(async (userData) => {
       const { email, password, roleNames } = userData;
 
@@ -63,7 +65,27 @@ export const seedUsers = async (prisma: PrismaService): Promise<void> => {
             })),
           },
         },
+        include: { roles: { include: { role: true } } },
       });
+
+      if (createdUser.roles.some((userRole) => userRole.role.name === ROLES.MODERATOR)) {
+        const moderator = await prisma.moderator.upsert({
+          where: { userId: createdUser.id },
+          update: {},
+          create: {
+            user: {
+              connect: { id: createdUser.id },
+            },
+          },
+        });
+
+        await prisma.moderator.update({
+          where: { id: moderator.id },
+          data: {
+            userId: createdUser.id,
+          },
+        });
+      }
 
       logger.log(`User "${createdUser.email}" created with roles: ${roleNames.join(', ')}`);
     }),

@@ -1,0 +1,12 @@
+model Moderator {
+  id     Int  @id @default(autoincrement())
+  
+  userId Int? @unique @map("user_id")
+  user              User?               @relation("ModerationToUser")
+
+  moderationHistory ModerationHistory[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("moderators")
+}

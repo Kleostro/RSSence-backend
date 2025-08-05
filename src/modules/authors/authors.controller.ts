@@ -53,6 +53,11 @@ export class AuthorsController {
     return this.authorsService.getAuthorPosts(username, query);
   }
 
+  @Get(':username/post-statuses')
+  public async getAuthorPostStatuses(@Param('username') username: string): Promise<{ name: string; count: number }[]> {
+    return this.authorsService.getAuthorPostStatuses(username);
+  }
+
   @Post()
   @UseInterceptors(FileInterceptor('avatar'))
   public async createOne(

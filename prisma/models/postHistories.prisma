@@ -1,0 +1,14 @@
+model PostHistory {
+  id     Int  @id @default(autoincrement())
+  postId Int  @map("post_id")
+  post   Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  authorUsername String @map("author_username")
+  author         Author @relation(fields: [authorUsername], references: [username])
+
+  actionType  PostActionType @map("action_type")
+  description String?
+  createdAt   DateTime       @default(now()) @map("created_at")
+
+  @@map("post_histories")
+}

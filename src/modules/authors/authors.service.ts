@@ -32,16 +32,49 @@ export class AuthorsService extends PaginationService {
     return this.prisma.author.findFirst({ where: { username } });
   }
 
+  public async getAuthorPostStatuses(username: string): Promise<{ name: string; count: number }[]> {
+    const result = await this.prisma.post.groupBy({
+      by: ['status'],
+      _count: { status: true },
+      where: {
+        authors: {
+          some: {
+            author: {
+              username,
+            },
+          },
+        },
+      },
+    });
+
+    return result
+      .sort((a, b) => a.status.localeCompare(b.status))
+      .map(({ status, _count }) => ({ name: status, count: _count.status }));
+  }
+
   public async getAuthorPosts(username: string, params: QueryParamsDto): Promise<PaginatedResponse<AuthorPost>> {
+    const include = {
+      authors: {
+        include: { author: true },
+      },
+    };
+    const { filter, filterField } = params;
+    const additionalWhere = {
+      authors: {
+        some: {
+          author: {
+            username,
+          },
+        },
+      },
+      ...(filter && filterField === 'status' ? { status: filter } : { filterField: filter }),
+    };
+
     return super.getPaginatedResult<AuthorPost>({
       model: this.prisma.post,
       params,
-      additionalWhere: { authors: { some: { author: { username } } } },
-      include: {
-        authors: {
-          include: { author: true },
-        },
-      },
+      additionalWhere,
+      include,
     });
   }
 

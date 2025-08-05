@@ -1,0 +1,24 @@
+model ModerationHistory {
+  id             Int                  @id @default(autoincrement())
+  previousStatus String?              @map("previous_status")
+  newStatus      String               @map("new_status")
+  actionType     String               @map("action_type")
+  comment        String?
+  reasons        String[]             @default([])
+  targetId       Int                  @map("target_id")
+  targetType     ModerationTargetType @map("target_type")
+  createdAt      DateTime             @default(now()) @map("created_at")
+
+  moderatorId Int       @map("moderator_id")
+  moderator   Moderator @relation(fields: [moderatorId], references: [id])
+
+  @@index([targetType, targetId])
+  @@map("moderation_histories")
+}
+
+enum ModerationTargetType {
+  POST
+  COMMENT
+  USER
+  MEDIA
+}

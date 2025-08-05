@@ -1,8 +1,8 @@
 model Role {
-  id    Int        @id @default(autoincrement())
-  name  String     @unique
+  id       Int        @id @default(autoincrement())
+  name     String     @unique
   priority Int
-  users UserRole[]
+  users    UserRole[]
 
   @@map("roles")
 }

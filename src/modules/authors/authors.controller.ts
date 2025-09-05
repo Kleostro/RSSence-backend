@@ -44,6 +44,14 @@ export class AuthorsController {
     return this.authorsService.getOne(username);
   }
 
+  // Move to analytics service
+  @Get(':username/contribution-stats')
+  public async getAuthorContributionStats(
+    @Param('username') username: string,
+  ): Promise<{ label: string; count: number; value: string }[]> {
+    return this.authorsService.getAuthorContributionStats(username);
+  }
+
   @Get(':username/posts')
   public async getAuthorPosts(
     @Query(new ValidateQueryParamsPipe<QueryParamsDto>(Object.keys(Prisma.PostScalarFieldEnum)))

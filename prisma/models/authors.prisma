@@ -7,11 +7,12 @@ model Author {
   bio       String?
   avatarUrl String? @map("avatar_url")
 
-  profile         Profile? @relation("AuthorToProfile")
-  profileUsername String?  @unique @map("profile_username")
+  posts        PostAuthor[]
+  postHistory  PostHistory[]
+  postVersions PostVersion[]
 
-  posts       PostAuthor[]
-  postHistory PostHistory[]
+  user   User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId Int?  @unique @map("user_id")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")

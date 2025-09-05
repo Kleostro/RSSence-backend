@@ -1,11 +1,12 @@
 model PostAuthor {
-  postId         Int     @map("post_id")
-  authorUsername String  @map("author_username")
-  isMainAuthor   Boolean @default(false) @map("is_main_author")
+  isMainAuthor Boolean @default(false) @map("is_main_author")
 
-  post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
-  author Author @relation(fields: [authorUsername], references: [username], onDelete: Cascade)
+  postId Int  @map("post_id")
+  post   Post @relation(fields: [postId], references: [id], onDelete: Cascade)
 
-  @@id([postId, authorUsername])
+  authorId Int    @map("author_id")
+  author   Author @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@id([postId, authorId])
   @@map("post_authors")
 }

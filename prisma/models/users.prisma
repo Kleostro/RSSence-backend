@@ -4,13 +4,11 @@ model User {
   email          String @unique
   hashedPassword String @map("hashed_password")
 
+  profile   Profile?
+  author    Author?
+  moderator Moderator?
+
   roles UserRole[]
-
-  profile         Profile? @relation(fields: [profileUsername], references: [username], onDelete: Cascade)
-  profileUsername String?  @unique @map("profile_username")
-
-  moderator   Moderator? @relation("ModerationToUser", fields: [moderatorId], references: [id])
-  moderatorId Int?       @unique @map("moderator_id")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")

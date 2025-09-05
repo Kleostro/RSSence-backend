@@ -11,13 +11,13 @@ export class PostLogService {
   public async logPostEvent(
     post: AuthorPost,
     actionType: PostActionType,
-    authorUsername: string,
+    authorId: number,
     description?: string,
   ): Promise<PostHistory> {
     return this.prisma.postHistory.create({
       data: {
         postId: post.id,
-        authorUsername,
+        authorId,
         actionType,
         description,
       },
@@ -41,9 +41,9 @@ export class PostLogService {
   public getCoauthorsDiff(
     oldAuthors: CurrentPostAuthors[],
     newCoauthors: CoauthorsList[],
-  ): { added: string[]; removed: string[] } {
-    const oldSet = new Set(oldAuthors.map((a) => a.authorUsername));
-    const newSet = new Set(newCoauthors.map((a) => a.username));
+  ): { added: number[]; removed: number[] } {
+    const oldSet = new Set(oldAuthors.map((a) => a.authorId));
+    const newSet = new Set(newCoauthors.map((a) => a.id));
 
     const added = [...newSet].filter((u) => !oldSet.has(u));
     const removed = [...oldSet].filter((u) => !newSet.has(u));

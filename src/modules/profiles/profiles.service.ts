@@ -39,20 +39,12 @@ export class ProfilesService {
 
     const avatarUrl = avatar ? await this.fileService.processImage(avatar, AVATAR_OPTIONS) : null;
 
-    return this.prisma.$transaction(async (tx) => {
-      const profile = await tx.profile.create({
-        data: {
-          ...dto,
-          avatarUrl,
-        },
-      });
-
-      await tx.user.update({
-        where: { id: currentUser.id },
-        data: { profileUsername: profile.username },
-      });
-
-      return profile;
+    return this.prisma.profile.create({
+      data: {
+        ...dto,
+        avatarUrl,
+        userId: currentUser.id,
+      },
     });
   }
 
@@ -92,36 +84,7 @@ export class ProfilesService {
 
   public async deleteOne(username: string): Promise<Profile> {
     const profile = await this.ensureProfileExists(username);
-    const currentUser = await this.prisma.user.findUnique({ where: { profileUsername: profile.username } });
-
-    if (!currentUser) {
-      throw new NotFoundException(ERROR_MESSAGES.USER_NOT_FOUND);
-    }
-
-    return this.prisma.$transaction(async (tx) => {
-      if (profile.authorUsername) {
-        const mainPosts = await tx.postAuthor.findMany({
-          where: {
-            authorUsername: profile.authorUsername,
-            isMainAuthor: true,
-          },
-          select: { postId: true },
-        });
-
-        const postIds = mainPosts.map((p) => p.postId);
-        if (postIds.length > 0) {
-          await tx.post.deleteMany({ where: { id: { in: postIds } } });
-        }
-
-        await tx.author.delete({ where: { username: profile.authorUsername } });
-      }
-      await tx.user.update({
-        where: { id: currentUser.id },
-        data: { profileUsername: null },
-      });
-
-      return tx.profile.delete({ where: { id: profile.id } });
-    });
+    return this.prisma.profile.delete({ where: { id: profile.id } });
   }
 
   public async checkAvailableUsername(username?: string): Promise<boolean> {

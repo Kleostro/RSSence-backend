@@ -28,7 +28,7 @@ export class UsersService extends PaginationService {
 
     const user = await this.prisma.user.findFirst({
       where: { id, email },
-      include: { roles: { include: { role: true } } },
+      include: { roles: { include: { role: true } }, profile: true, author: true, moderator: true },
       omit: { hashedPassword: true },
     });
 
@@ -36,30 +36,9 @@ export class UsersService extends PaginationService {
       throw new NotFoundException(ERROR_MESSAGES.USER_NOT_FOUND);
     }
 
-    let profile = null;
-
-    if (user.profileUsername) {
-      profile = await this.prisma.profile.findFirst({ where: { username: user.profileUsername } });
-    }
-
-    let author = null;
-
-    if (profile && profile.authorUsername) {
-      author = await this.prisma.author.findFirst({ where: { username: profile.authorUsername } });
-    }
-
-    let moderator = null;
-
-    if (user.moderatorId) {
-      moderator = await this.prisma.moderator.findFirst({ where: { id: user.moderatorId } });
-    }
-
     return {
       ...user,
       roles: user.roles.map((userRole) => userRole.role.name),
-      profile,
-      moderator,
-      author,
     };
   }
 
@@ -103,7 +82,6 @@ export class UsersService extends PaginationService {
 
   public async deleteOne(userId: number): Promise<User> {
     await this.ensureUserExists(userId);
-    await this.prisma.userRole.deleteMany({ where: { userId } });
     return this.prisma.user.delete({ where: { id: userId } });
   }
 

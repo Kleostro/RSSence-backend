@@ -1,14 +1,17 @@
 model Post {
-  id      Int     @id @default(autoincrement())
+  id Int @id @default(autoincrement())
+
   title   String
   content String
 
-  createdAt DateTime   @default(now()) @map("created_at")
-  updatedAt DateTime   @updatedAt @map("updated_at")
-  status    PostStatus @default(DRAFT)
+  status PostStatus @default(DRAFT)
 
-  authors     PostAuthor[]
-  postHistory PostHistory[]
+  authors      PostAuthor[]
+  postHistory  PostHistory[]
+  postVersions PostVersion[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("posts")
 }
@@ -25,5 +28,6 @@ enum PostActionType {
   POST_CREATED
   POST_UPDATED
   POST_SUBMITTED
+  POST_VERSION_REVERTED
   MODERATION_STATUS_CHANGED
 }

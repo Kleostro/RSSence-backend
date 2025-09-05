@@ -7,10 +7,11 @@ model ModerationHistory {
   reasons        String[]             @default([])
   targetId       Int                  @map("target_id")
   targetType     ModerationTargetType @map("target_type")
-  createdAt      DateTime             @default(now()) @map("created_at")
 
   moderatorId Int       @map("moderator_id")
   moderator   Moderator @relation(fields: [moderatorId], references: [id])
+
+  createdAt DateTime @default(now()) @map("created_at")
 
   @@index([targetType, targetId])
   @@map("moderation_histories")

@@ -7,6 +7,7 @@ import { ERROR_MESSAGES } from '@/shared/constants/error-message';
 import { FileService } from '@/shared/services/file/file.service';
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 
+import { POST_STATUS } from '../posts/constants/post';
 import { AVATAR_OPTIONS } from '../profiles/constants/images-options';
 import { FullUserInfoType } from '../users/types/types';
 import { CreateAuthorDto } from './dto/create-author.dto';
@@ -52,23 +53,49 @@ export class AuthorsService extends PaginationService {
       .map(({ status, _count }) => ({ name: status, count: _count.status }));
   }
 
+  public async getAuthorContributionStats(
+    username: string,
+  ): Promise<{ label: string; count: number; value: string }[]> {
+    const [totalPosts, mainAuthorCount, coAuthorCount] = await Promise.all([
+      this.prisma.post.count({ where: { status: POST_STATUS.APPROVED, authors: { some: { author: { username } } } } }),
+      this.prisma.post.count({
+        where: { status: POST_STATUS.APPROVED, authors: { some: { author: { username }, isMainAuthor: true } } },
+      }),
+      this.prisma.post.count({
+        where: { status: POST_STATUS.APPROVED, authors: { some: { author: { username }, isMainAuthor: false } } },
+      }),
+    ]);
+
+    return [
+      { label: 'All', count: totalPosts, value: 'All' },
+      { label: 'As author', count: mainAuthorCount, value: 'Author' },
+      { label: 'As coauthor', count: coAuthorCount, value: 'Coauthor' },
+    ];
+  }
+
   public async getAuthorPosts(username: string, params: QueryParamsDto): Promise<PaginatedResponse<AuthorPost>> {
-    const include = {
-      authors: {
-        include: { author: true },
-      },
+    let additionalWhere: Record<string, unknown> = {
+      authors: { some: { author: { username } } },
+      status: POST_STATUS.APPROVED,
     };
-    const { filter, filterField } = params;
-    const additionalWhere = {
-      authors: {
-        some: {
-          author: {
-            username,
-          },
-        },
-      },
-      ...(filter && filterField === 'status' ? { status: filter } : { filterField: filter }),
-    };
+    const include = { authors: { include: { author: true } } };
+
+    if (params.filterField === 'status' && params.filter) {
+      additionalWhere = { authors: { some: { author: { username } } }, status: params.filter };
+    }
+
+    if (params.filterField === 'isMainAuthor') {
+      const isMainAuthor = params.filter === 'Author';
+      additionalWhere = { authors: { some: { author: { username }, isMainAuthor } }, status: POST_STATUS.APPROVED };
+    }
+
+    if (params.filterField === 'createdAt') {
+      additionalWhere = {
+        authors: { some: { author: { username } } },
+        status: POST_STATUS.APPROVED,
+        createdAt: { gt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000) },
+      };
+    }
 
     return super.getPaginatedResult<AuthorPost>({
       model: this.prisma.post,
@@ -99,21 +126,12 @@ export class AuthorsService extends PaginationService {
 
     const avatarUrl = avatar ? await this.fileService.processImage(avatar, AVATAR_OPTIONS) : null;
 
-    return this.prisma.$transaction(async (tx) => {
-      const newAuthor = await tx.author.create({
-        data: {
-          ...dto,
-          profileUsername: profile.username,
-          avatarUrl,
-        },
-      });
-
-      await tx.profile.update({
-        where: { id: profile.id },
-        data: { authorUsername: newAuthor.username },
-      });
-
-      return newAuthor;
+    return this.prisma.author.create({
+      data: {
+        ...dto,
+        avatarUrl,
+        userId: currentUser.id,
+      },
     });
   }
 
@@ -135,30 +153,7 @@ export class AuthorsService extends PaginationService {
 
   public async deleteOne(username: string): Promise<Author> {
     const author = await this.ensureAuthorExists(username);
-    return this.prisma.$transaction(async (tx) => {
-      const mainPosts = await tx.postAuthor.findMany({
-        where: {
-          authorUsername: author.username,
-          isMainAuthor: true,
-        },
-        select: { postId: true },
-      });
-
-      const postIds = mainPosts.map((p) => p.postId);
-      if (postIds.length > 0) {
-        await tx.post.deleteMany({ where: { id: { in: postIds } } });
-      }
-
-      if (author.profileUsername) {
-        await tx.profile.update({
-          where: { username: author.profileUsername },
-          data: { authorUsername: null },
-        });
-      }
-
-      const deletedAuthor = await tx.author.delete({ where: { username: author.username } });
-      return deletedAuthor;
-    });
+    return this.prisma.author.delete({ where: { username: author.username } });
   }
 
   private hasAuthor(username: string): Promise<Author | null> {

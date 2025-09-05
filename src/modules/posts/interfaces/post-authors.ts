@@ -1,9 +1,9 @@
 export interface CurrentPostAuthors {
-  authorUsername: string;
+  authorId: number;
   isMainAuthor: boolean;
 }
 
 export interface CoauthorsList {
-  username: string;
+  id: number;
   isMainAuthor: boolean;
 }

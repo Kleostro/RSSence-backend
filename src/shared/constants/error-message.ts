@@ -3,6 +3,7 @@ export const ERROR_MESSAGES = {
   USER_UNAUTHORIZED: 'User unauthorized',
   INVALID_CREDENTIALS: 'Invalid credentials',
   INVALID_OR_EXPIRED_TOKEN: 'Invalid or expired token',
+  VERSION_NOT_FOUND: 'This version does not exist',
   EMAIL_EXISTS: 'Email already exists',
   PROFILE_NOT_FOUND: 'Profile not found',
   PROFILE_EXISTS: 'Profile already exists',

@@ -77,7 +77,7 @@ export class AuthService {
   public async resetPassword({ passwordResetToken, newPassword }: ResetPasswordDto): Promise<void> {
     const payload = await this.tokenService.verifyToken(passwordResetToken, 'JWT_PASSWORD_RESET_SECRET');
     const hashedPassword = await this.passwordService.hash(newPassword);
-    await this.usersService.updateOne({ hashedPassword }, +payload.userId);
+    await this.usersService.updateOne({ where: { id: +payload.userId }, data: { hashedPassword } });
   }
 
   private async validateUser(email: string, pass: string): Promise<User> {

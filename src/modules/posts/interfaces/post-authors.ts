@@ -1,9 +1,4 @@
-export interface CurrentPostAuthors {
+export interface PostAuthors {
   authorId: number;
-  isMainAuthor: boolean;
-}
-
-export interface CoauthorsList {
-  id: number;
   isMainAuthor: boolean;
 }

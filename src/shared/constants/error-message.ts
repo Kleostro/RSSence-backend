@@ -8,6 +8,9 @@ export const ERROR_MESSAGES = {
   PROFILE_NOT_FOUND: 'Profile not found',
   PROFILE_EXISTS: 'Profile already exists',
   USERNAME_EXISTS: 'Username already exists',
+  POST_HISTORY_NOT_FOUND: 'Post history not found',
+  POST_NOT_FOUND: 'Post not found',
+  POST_SLUG_ALREADY_EXISTS: 'Post with this slug already exists',
   ROLE_NOT_FOUND: 'Role not found',
   ROLE_EXISTS: 'Role already exists',
   INVALID_ROLE: 'Invalid role',
@@ -17,5 +20,5 @@ export const ERROR_MESSAGES = {
   IMAGE_NOT_FOUND: 'Image not found',
   IMAGE_EXISTS: 'Image already exists',
   IMAGE_DELETE_FAILED: 'Image delete failed',
-  NOT_POST_AUTHOR: 'You are not the author of this post',
+  NOT_POST_AUTHOR: 'You are not the main author of this post',
 } as const;

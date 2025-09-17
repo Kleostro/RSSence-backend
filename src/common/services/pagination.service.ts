@@ -5,50 +5,34 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { PrismaClient } from '@/generated/prisma';
+import { Prisma, PrismaClient } from '@/generated/prisma';
 
-import { QueryParamsDto } from '../dto/query-params.dto';
 import { PaginatedResponse } from '../interfaces/pagination.interface';
 
+interface PaginationProps<Args> {
+  model: any;
+  args?: Args & { where?: Record<string, unknown> };
+  page?: number;
+  limit?: number;
+}
+
 export abstract class PaginationService {
-  constructor(
-    protected readonly prisma: PrismaClient,
-    protected readonly defaultSortField = 'id',
-    protected readonly defaultSearchField = 'id',
-  ) {}
+  constructor(protected readonly prisma: PrismaClient) {}
 
-  // eslint-disable-next-line max-lines-per-function
-  public async getPaginatedResult<T>(data: {
-    model: any;
-    params: QueryParamsDto;
-    additionalWhere?: Record<string, unknown>;
-    include?: Record<string, unknown>;
-  }): Promise<PaginatedResponse<T>> {
-    const { page, limit, sortBy, sortOrder, search, searchField } = data.params;
-
-    const effectiveSortField = sortBy || this.defaultSortField;
-    const effectiveSearchField = searchField || this.defaultSearchField;
-
-    const baseWhere = {
-      ...(search && { [effectiveSearchField]: { contains: search, mode: 'insensitive' } }),
-    };
-
-    const where = {
-      ...baseWhere,
-      ...data.additionalWhere,
-    };
-
+  public async getPaginatedResult<T, Args extends Prisma.Args<unknown, 'findMany'>>({
+    model,
+    args,
+    page = 1,
+    limit = 10,
+  }: PaginationProps<Args>): Promise<PaginatedResponse<T>> {
     try {
-      const [items, total] = await this.prisma.$transaction([
-        data.model.findMany({
-          where,
-          include: data.include,
-          skip: (page - 1) * limit,
-          take: limit,
-          orderBy: { [effectiveSortField]: sortOrder },
-        }),
-        data.model.count({ where }),
-      ]);
+      const { list: items, count: total } = await this.prisma.$transaction(async () => {
+        const list = await model.findMany({ ...args, skip: (page - 1) * limit, take: limit });
+        const count = await model.count({ where: args?.where });
+        return { list, count };
+      });
+
+      const first = (page - 1) * limit;
 
       return {
         items,
@@ -57,18 +41,12 @@ export abstract class PaginationService {
         limit: limit ?? 10,
         totalPages: Math.ceil(total / (limit ?? 10)),
         hasMore: (page ?? 1) * (limit ?? 10) < total,
+        first,
       };
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error(error);
-      return {
-        items: [],
-        total: 0,
-        page: 1,
-        limit: 10,
-        totalPages: 1,
-        hasMore: false,
-      };
+      return { items: [], total: 0, page: 1, limit: 10, totalPages: 1, hasMore: false, first: 0 };
     }
   }
 }

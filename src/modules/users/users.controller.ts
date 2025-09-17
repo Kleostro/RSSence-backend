@@ -2,6 +2,7 @@ import { QueryParamsDto } from '@/common/dto/query-params.dto';
 import { PaginatedResponse } from '@/common/interfaces/pagination.interface';
 import { RoleGuard } from '@/core/guards/role.guard';
 import { User, UserRole } from '@/generated/prisma';
+import { BatchPayload } from '@/generated/prisma/internal/prismaNamespace';
 import { ROLES } from '@/shared/constants/roles';
 import { CurrentUser } from '@/shared/decorators/current-user.decorator';
 import { Roles } from '@/shared/decorators/roles.decorator';
@@ -11,7 +12,7 @@ import { ApiTags } from '@nestjs/swagger';
 import { JwtAccessGuard } from '../auth/guards/jwt-acess.guard';
 import { CheckEmailDto } from './dto/check-email.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { FullUserInfoType, UserWithRelationsWithoutPassword } from './types/types';
+import { UserWithProfileAndAuthor } from './types/user.type';
 import * as usersController from './users-controller-swagger.decorators';
 import { UsersService } from './users.service';
 
@@ -24,38 +25,39 @@ export class UsersController {
   @UseGuards(JwtAccessGuard, RoleGuard)
   @Roles(ROLES.ADMIN, ROLES.SUPER_ADMIN)
   @Get()
-  public async getAll(@Query() query: QueryParamsDto): Promise<PaginatedResponse<UserWithRelationsWithoutPassword>> {
+  public async getAll(
+    @Query() query: QueryParamsDto,
+  ): Promise<PaginatedResponse<Omit<User, 'hashedPassword'> & { roles: string[] }>> {
     return this.usersService.getAll(query);
   }
 
   @usersController.ApiGetCurrentUser()
   @UseGuards(JwtAccessGuard)
   @Get('me')
-  public getCurrentUser(@CurrentUser() currentUser: FullUserInfoType | null): FullUserInfoType | null {
+  public getCurrentUser(@CurrentUser() currentUser: User | null): User | null {
     return currentUser;
   }
 
   @usersController.ApiGetOneUser()
   @UseGuards(JwtAccessGuard)
   @Get(':userId')
-  public async getOne(@Param('userId', ParseIntPipe) id: number): Promise<FullUserInfoType> {
+  public async getOne(
+    @Param('userId', ParseIntPipe) id: number,
+  ): Promise<UserWithProfileAndAuthor & { roles: string[] }> {
     return this.usersService.getOne({ id });
   }
 
   @usersController.ApiUpdateOneUser()
   @Patch(':userId')
-  public async updateOne(
-    @Body() updateUserDto: UpdateUserDto,
-    @Param('userId', ParseIntPipe) id: number,
-  ): Promise<User | null> {
-    return this.usersService.updateOne(updateUserDto, id);
+  public async updateOne(@Body() dto: UpdateUserDto, @Param('userId', ParseIntPipe) id: number): Promise<User> {
+    return this.usersService.updateOne({ where: { id }, data: dto });
   }
 
   @usersController.ApiDeleteAllUsers()
   @UseGuards(JwtAccessGuard, RoleGuard)
   @Roles(ROLES.ADMIN, ROLES.SUPER_ADMIN)
   @Delete()
-  public async deleteAll(): Promise<unknown> {
+  public async deleteAll(): Promise<BatchPayload> {
     return this.usersService.deleteAll();
   }
 
@@ -63,7 +65,7 @@ export class UsersController {
   @Roles(ROLES.ADMIN, ROLES.SUPER_ADMIN)
   @Delete(':userId')
   public async deleteOne(@Param('userId', ParseIntPipe) id: number): Promise<User> {
-    return this.usersService.deleteOne(id);
+    return this.usersService.deleteOne({ id });
   }
 
   @usersController.ApiAddRoleToUser()
@@ -71,10 +73,10 @@ export class UsersController {
   @Roles(ROLES.ADMIN, ROLES.SUPER_ADMIN)
   @Patch(':userId/roles/:roleName')
   public async addRole(
-    @Param('userId', ParseIntPipe) userId: number,
+    @Param('userId', ParseIntPipe) id: number,
     @Param('roleName') roleName: string,
   ): Promise<UserRole> {
-    return this.usersService.addRoleToUser(userId, roleName);
+    return this.usersService.addRoleToUser({ id }, roleName);
   }
 
   @usersController.ApiRemoveRoleFromUser()
@@ -82,10 +84,10 @@ export class UsersController {
   @Roles(ROLES.ADMIN, ROLES.SUPER_ADMIN)
   @Delete(':userId/roles/:roleName')
   public async removeRole(
-    @Param('userId', ParseIntPipe) userId: number,
+    @Param('userId', ParseIntPipe) id: number,
     @Param('roleName') roleName: string,
   ): Promise<UserRole> {
-    return this.usersService.removeRoleFromUser(userId, roleName);
+    return this.usersService.removeRoleFromUser({ id }, roleName);
   }
 
   @usersController.ApiCheckAvailableEmail()

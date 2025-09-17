@@ -21,7 +21,7 @@ export class FileService {
     return sharp(bufferAfterResize).webp({ effort }).toFormat(format, { quality }).toBuffer();
   }
 
-  private async resize({ buffer }: Buffer, width: number, height: number): Promise<Buffer> {
+  private async resize(buffer: Buffer<ArrayBufferLike>, width: number, height: number): Promise<Buffer> {
     return sharp(buffer).resize(width, height).toBuffer();
   }
 }

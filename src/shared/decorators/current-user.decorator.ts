@@ -1,9 +1,9 @@
 import { Request } from 'express';
 
-import { FullUserInfoType } from '@/modules/users/types/types';
+import { UserWithProfileAndAuthor } from '@/modules/users/types/user.type';
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
 
-export const CurrentUser = createParamDecorator((key: keyof FullUserInfoType, context: ExecutionContext) => {
-  const req = context.switchToHttp().getRequest<Request & { user: FullUserInfoType }>();
+export const CurrentUser = createParamDecorator((key: keyof UserWithProfileAndAuthor, context: ExecutionContext) => {
+  const req = context.switchToHttp().getRequest<Request & { user: UserWithProfileAndAuthor }>();
   return key ? req.user[key] : req.user;
 });

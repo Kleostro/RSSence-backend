@@ -2,9 +2,6 @@ import { ROLES } from '@/shared/constants/roles';
 import { applyDecorators, HttpStatus } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
 
-import { CreateRoleDto } from './dto/create-role.dto';
-import { RoleDto } from './dto/role.dto';
-
 export function ApiGetAllRoles(): MethodDecorator {
   return applyDecorators(
     ApiOperation({
@@ -15,7 +12,6 @@ export function ApiGetAllRoles(): MethodDecorator {
     ApiResponse({
       status: HttpStatus.OK,
       description: 'Returns a list of all roles.',
-      type: [RoleDto],
     }),
     ApiResponse({
       status: HttpStatus.UNAUTHORIZED,
@@ -44,7 +40,6 @@ export function ApiGetOneRole(): MethodDecorator {
     ApiResponse({
       status: HttpStatus.OK,
       description: 'Returns the role.',
-      type: RoleDto,
     }),
     ApiResponse({
       status: HttpStatus.NOT_FOUND,
@@ -74,12 +69,10 @@ export function ApiCreateRole(): MethodDecorator {
     ApiBearerAuth('bearer'),
     ApiBody({
       required: true,
-      type: CreateRoleDto,
     }),
     ApiResponse({
       status: HttpStatus.CREATED,
       description: 'Returns the created role.',
-      type: RoleDto,
     }),
     ApiResponse({
       status: HttpStatus.BAD_REQUEST,

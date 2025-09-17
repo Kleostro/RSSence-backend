@@ -5,4 +5,5 @@ export interface PaginatedResponse<T> {
   limit: number;
   totalPages: number;
   hasMore: boolean;
+  first: number;
 }

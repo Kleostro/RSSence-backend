@@ -10,14 +10,11 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 import { AppModule } from './app/app.module';
 import { AllExceptionsFilter } from './core/filters/exception.filter';
-import { seedDatabase } from './core/seeds/database.seed';
-import { PrismaService } from './prisma/prisma.service';
 
-// eslint-disable-next-line max-lines-per-function
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
-  const prisma = app.get(PrismaService);
-  await seedDatabase(prisma);
+  // const prisma = app.get(PrismaService);
+  // await runSeed(prisma);
 
   app.useWebSocketAdapter(new IoAdapter(app));
   app.useGlobalPipes(new ValidationPipe({ transform: true }));
@@ -31,16 +28,8 @@ async function bootstrap(): Promise<void> {
     .setTitle('RSSence')
     .setDescription('API documentation for RSSence')
     .setVersion('1.0')
-    .addSecurity('cookieAuth', {
-      type: 'apiKey',
-      in: 'cookie',
-      name: 'refreshToken',
-    })
-    .addSecurity('bearer', {
-      type: 'http',
-      scheme: 'bearer',
-      bearerFormat: 'JWT',
-    })
+    .addSecurity('cookieAuth', { type: 'apiKey', in: 'cookie', name: 'refreshToken' })
+    .addSecurity('bearer', { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' })
     .build();
 
   const document = SwaggerModule.createDocument(app, config);

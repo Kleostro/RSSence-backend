@@ -1,5 +1,6 @@
 import { RoleGuard } from '@/core/guards/role.guard';
 import { Role } from '@/generated/prisma';
+import { BatchPayload } from '@/generated/prisma/internal/prismaNamespace';
 import { ROLES } from '@/shared/constants/roles';
 import { Roles } from '@/shared/decorators/roles.decorator';
 import { Body, Controller, Delete, Get, Param, Post, UseGuards } from '@nestjs/common';
@@ -48,7 +49,7 @@ export class RolesController {
   @UseGuards(JwtAccessGuard, RoleGuard)
   @Roles(ROLES.ADMIN)
   @Delete()
-  public async deleteAll(): Promise<unknown> {
+  public async deleteAll(): Promise<BatchPayload> {
     return this.rolesService.deleteAll();
   }
 
@@ -57,6 +58,6 @@ export class RolesController {
   @Roles(ROLES.ADMIN)
   @Delete(':roleName')
   public async deleteOne(@Param('roleName') name: string): Promise<Role> {
-    return this.rolesService.deleteOne(name);
+    return this.rolesService.deleteOne({ name });
   }
 }

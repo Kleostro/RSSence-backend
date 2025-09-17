@@ -2,8 +2,6 @@ import { applyDecorators, HttpStatus } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOperation, ApiResponse } from '@nestjs/swagger';
 
 import { CheckUsernameDto } from './dto/check-username';
-import { CreateProfileDto } from './dto/create-profile.dto';
-import { UpdateProfileDto } from './dto/update-profile.dto';
 
 export function ApiGetMeProfile(): MethodDecorator {
   return applyDecorators(
@@ -15,7 +13,6 @@ export function ApiGetMeProfile(): MethodDecorator {
     ApiResponse({
       status: HttpStatus.OK,
       description: 'Returns the current user profile.',
-      type: CreateProfileDto,
     }),
     ApiResponse({
       status: HttpStatus.NOT_FOUND,
@@ -38,12 +35,10 @@ export function ApiCreateMeProfile(): MethodDecorator {
     ApiConsumes('multipart/form-data'),
     ApiBody({
       required: false,
-      type: CreateProfileDto,
     }),
     ApiResponse({
       status: HttpStatus.CREATED,
       description: 'Returns the created profile.',
-      type: CreateProfileDto,
     }),
     ApiResponse({
       status: HttpStatus.BAD_REQUEST,
@@ -70,12 +65,10 @@ export function ApiUpdateMeProfile(): MethodDecorator {
     ApiConsumes('multipart/form-data'),
     ApiBody({
       required: false,
-      type: UpdateProfileDto,
     }),
     ApiResponse({
       status: HttpStatus.OK,
       description: 'Returns the updated profile.',
-      type: UpdateProfileDto,
     }),
     ApiResponse({
       status: HttpStatus.NOT_FOUND,

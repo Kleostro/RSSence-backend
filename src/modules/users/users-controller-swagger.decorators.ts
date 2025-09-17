@@ -3,7 +3,6 @@ import { applyDecorators, HttpStatus } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
 
 import { CheckEmailDto } from './dto/check-email.dto';
-import { UserDto } from './dto/user.dto';
 
 export function ApiGetAllUsers(): MethodDecorator {
   return applyDecorators(
@@ -15,7 +14,6 @@ export function ApiGetAllUsers(): MethodDecorator {
     ApiResponse({
       status: HttpStatus.OK,
       description: 'Returns a list of all users.',
-      type: [UserDto],
     }),
     ApiResponse({
       status: HttpStatus.UNAUTHORIZED,
@@ -38,7 +36,6 @@ export function ApiGetCurrentUser(): MethodDecorator {
     ApiResponse({
       status: HttpStatus.OK,
       description: 'Returns a current user.',
-      type: UserDto,
     }),
     ApiResponse({
       status: HttpStatus.UNAUTHORIZED,
@@ -63,7 +60,6 @@ export function ApiGetOneUser(): MethodDecorator {
     ApiResponse({
       status: HttpStatus.OK,
       description: 'Returns the user with the specified ID.',
-      type: UserDto,
     }),
     ApiResponse({
       status: HttpStatus.NOT_FOUND,
@@ -89,7 +85,6 @@ export function ApiUpdateCurrentUser(): MethodDecorator {
     ApiBearerAuth('bearer'),
     ApiBody({
       required: false,
-      type: UserDto,
     }),
     ApiResponse({
       status: HttpStatus.OK,
@@ -115,7 +110,6 @@ export function ApiUpdateOneUser(): MethodDecorator {
     ApiBearerAuth('bearer'),
     ApiBody({
       required: false,
-      type: UserDto,
     }),
     ApiParam({
       name: 'userId',

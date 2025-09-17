@@ -1,10 +1,9 @@
-import { Role, UserRole } from '@/generated/prisma';
+import { Prisma, Role, UserRole } from '@/generated/prisma';
+import { BatchPayload } from '@/generated/prisma/internal/prismaNamespace';
 import { PrismaService } from '@/prisma/prisma.service';
 import { ERROR_MESSAGES } from '@/shared/constants/error-message';
-import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
-
-import { CreateRoleDto } from './dto/create-role.dto';
-import { GetRoleDto } from './dto/get-role.dto';
+import { ROLES } from '@/shared/constants/roles';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 
 @Injectable()
 export class RolesService {
@@ -18,12 +17,12 @@ export class RolesService {
     return this.prisma.role.findMany({ orderBy: { priority: 'asc' }, select: { name: true, priority: true } });
   }
 
-  public async getOne({ id, name }: GetRoleDto): Promise<Role> {
-    if (!id && !name) {
-      throw new BadRequestException(ERROR_MESSAGES.INVALID_ROLE);
-    }
+  public async getOne(where: Prisma.RoleWhereUniqueInput): Promise<Role> {
+    return this.findRole({ where });
+  }
 
-    const role = await this.prisma.role.findUnique({ where: { id, name } });
+  private async findRole(options: Prisma.RoleFindUniqueArgs): Promise<Role> {
+    const role = await this.prisma.role.findUnique(options);
 
     if (!role) {
       throw new NotFoundException(ERROR_MESSAGES.ROLE_NOT_FOUND);
@@ -32,28 +31,25 @@ export class RolesService {
     return role;
   }
 
-  public async createOne(dto: CreateRoleDto): Promise<Role> {
-    await this.isRoleExists(dto.name);
-    return this.prisma.role.create({ data: dto });
+  public async createOne(data: Prisma.RoleCreateInput): Promise<Role> {
+    await this.isRoleExists(data.name);
+    return this.prisma.role.create({ data });
   }
 
-  private async hasRole(name: string): Promise<Role | null> {
-    const result = await this.prisma.role.findFirst({ where: { name } });
+  private async hasRole(where: Prisma.RoleWhereUniqueInput): Promise<Role | null> {
+    const result = await this.prisma.role.findFirst({ where });
     return result;
   }
 
   public async addRoleToUser(userId: number, name: string): Promise<UserRole> {
     const role = await this.getOne({ name });
     await this.userHasRole(userId, role.id);
-    if (name === 'MODERATOR') {
+
+    if (name === ROLES.MODERATOR) {
       await this.prisma.moderator.upsert({
         where: { userId },
         update: {},
-        create: {
-          user: {
-            connect: { id: userId },
-          },
-        },
+        create: { user: { connect: { id: userId } } },
       });
     }
 
@@ -66,7 +62,7 @@ export class RolesService {
   }
 
   public async isRoleExists(name: string): Promise<null> {
-    const role = await this.hasRole(name);
+    const role = await this.hasRole({ name });
 
     if (role) {
       throw new ConflictException(ERROR_MESSAGES.ROLE_EXISTS);
@@ -80,14 +76,13 @@ export class RolesService {
     return result;
   }
 
-  public async deleteAll(): Promise<unknown> {
+  public async deleteAll(): Promise<BatchPayload> {
     return this.prisma.role.deleteMany();
   }
 
-  public async deleteOne(name: string): Promise<Role> {
-    const role = await this.getOne({ name });
-    await this.prisma.userRole.deleteMany({ where: { roleId: role.id } });
-    return this.prisma.role.delete({ where: { name } });
+  public async deleteOne(where: Prisma.RoleWhereUniqueInput): Promise<Role> {
+    await this.findRole({ where });
+    return this.prisma.role.delete({ where });
   }
 
   private async userHasRole(userId: number, roleId: number): Promise<null> {

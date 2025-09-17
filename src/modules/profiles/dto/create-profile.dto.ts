@@ -1,13 +1,10 @@
-import { Transform, Type } from 'class-transformer';
-import { IsDefined, IsNotEmpty, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
+import { IsDate, IsNotEmpty, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
 
 import { IsDateInRange } from '@/shared/validators/is-date-in-range.validator';
-import { BadRequestException } from '@nestjs/common';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateProfileDto {
   @ApiProperty({ required: true, default: 'John' })
-  @IsDefined()
   @IsNotEmpty()
   @IsString()
   @MinLength(3)
@@ -15,7 +12,6 @@ export class CreateProfileDto {
   public firstname!: string;
 
   @ApiProperty({ required: true, default: 'Doe' })
-  @IsDefined()
   @IsNotEmpty()
   @IsString()
   @MinLength(3)
@@ -23,7 +19,6 @@ export class CreateProfileDto {
   public lastname!: string;
 
   @ApiProperty({ required: true, default: 'johndoe' })
-  @IsDefined()
   @IsNotEmpty()
   @IsString()
   @MinLength(3)
@@ -32,7 +27,6 @@ export class CreateProfileDto {
 
   @ApiProperty({ required: false, default: 'My bio' })
   @IsOptional()
-  @IsDefined()
   @IsNotEmpty()
   @IsString()
   @MaxLength(500)
@@ -46,7 +40,6 @@ export class CreateProfileDto {
     format: 'binary',
   })
   @IsOptional()
-  @IsDefined()
   @IsNotEmpty()
   public avatar?: File;
 
@@ -58,18 +51,8 @@ export class CreateProfileDto {
     example: '2000-01-01T00:00:00.000Z',
   })
   @IsOptional()
-  @IsDefined()
   @IsNotEmpty()
-  @Type(() => Date)
-  @Transform(({ value }: { value: string }) => {
-    const date = new Date(value);
-
-    if (Number.isNaN(date.getTime())) {
-      throw new BadRequestException('Invalid date format');
-    }
-
-    return date;
-  })
+  @IsDate()
   @IsDateInRange({ minDate: null, maxDate: new Date() }, { message: 'Birthdate must be a valid date in the past' })
   public birthdate?: string;
 }

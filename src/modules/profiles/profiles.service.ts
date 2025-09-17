@@ -1,13 +1,11 @@
-import { Profile } from '@/generated/prisma';
+import { Prisma, Profile } from '@/generated/prisma';
 import { PrismaService } from '@/prisma/prisma.service';
 import { ERROR_MESSAGES } from '@/shared/constants/error-message';
 import { FileService } from '@/shared/services/file/file.service';
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 
-import { FullUserInfoType } from '../users/types/types';
+import { UserWithProfileAndAuthor } from '../users/types/user.type';
 import { AVATAR_OPTIONS } from './constants/images-options';
-import { CreateProfileDto } from './dto/create-profile.dto';
-import { UpdateProfileDto } from './dto/update-profile.dto';
 
 @Injectable()
 export class ProfilesService {
@@ -20,71 +18,61 @@ export class ProfilesService {
     return this.prisma.profile.findMany();
   }
 
-  public async getOne(where: { id?: number; username?: string }): Promise<Profile | null> {
-    return this.prisma.profile.findFirst({ where });
+  public async getOne(where: Prisma.ProfileWhereUniqueInput): Promise<Profile> {
+    return this.findProfile({ where });
+  }
+
+  private async findProfile(options: Prisma.ProfileFindUniqueArgs): Promise<Profile> {
+    const profile = await this.prisma.profile.findUnique(options);
+
+    if (!profile) {
+      throw new NotFoundException(ERROR_MESSAGES.PROFILE_NOT_FOUND);
+    }
+
+    return profile;
   }
 
   public async createOne(
-    dto: CreateProfileDto,
-    currentUser: FullUserInfoType,
+    data: Prisma.ProfileCreateManyInput,
+    currentUser: UserWithProfileAndAuthor | null,
     avatar?: Express.Multer.File,
   ): Promise<Profile> {
-    if (currentUser.profile) {
+    if (currentUser?.profile) {
       throw new ConflictException(ERROR_MESSAGES.PROFILE_EXISTS);
     }
 
-    if (dto.username) {
-      await this.ensureUsernameAvailable(dto.username);
+    if (data.username) {
+      await this.ensureUsernameAvailable(data.username);
     }
 
     const avatarUrl = avatar ? await this.fileService.processImage(avatar, AVATAR_OPTIONS) : null;
 
-    return this.prisma.profile.create({
-      data: {
-        ...dto,
-        avatarUrl,
-        userId: currentUser.id,
-      },
-    });
+    const newProfile = await this.prisma.profile.create({ data: { ...data, avatarUrl, userId: currentUser?.id } });
+    return newProfile;
   }
 
   public async updateOne(
-    dto: UpdateProfileDto,
-    currentUser: FullUserInfoType,
+    data: Prisma.ProfileUpdateManyMutationInput,
+    where: Prisma.ProfileWhereUniqueInput,
     avatar?: Express.Multer.File,
   ): Promise<Profile> {
-    if (!currentUser.profile) {
-      throw new NotFoundException(ERROR_MESSAGES.PROFILE_NOT_FOUND);
-    }
+    await this.findProfile({ where });
 
-    if (dto.username) {
-      await this.ensureUsernameAvailable(dto.username);
+    if (data.username) {
+      await this.ensureUsernameAvailable(String(data.username));
     }
 
     const avatarUrl = avatar ? await this.fileService.processImage(avatar, AVATAR_OPTIONS) : null;
 
-    if (!avatarUrl) {
-      return this.prisma.profile.update({ where: { id: currentUser.profile.id }, data: { ...dto } });
-    }
-    return this.prisma.profile.update({ where: { id: currentUser.profile.id }, data: { ...dto, avatarUrl } });
+    return this.prisma.profile.update({
+      where,
+      data: !avatarUrl ? { ...data } : { ...data, avatarUrl },
+    });
   }
 
-  private hasProfile(username: string): Promise<Profile | null> {
-    return this.prisma.profile.findFirst({ where: { username } });
-  }
-
-  private async ensureProfileExists(username: string): Promise<Profile> {
-    const hasProfile = await this.hasProfile(username);
-    if (!hasProfile) {
-      throw new NotFoundException(ERROR_MESSAGES.PROFILE_NOT_FOUND);
-    }
-
-    return hasProfile;
-  }
-
-  public async deleteOne(username: string): Promise<Profile> {
-    const profile = await this.ensureProfileExists(username);
-    return this.prisma.profile.delete({ where: { id: profile.id } });
+  public async deleteOne(where: Prisma.ProfileWhereUniqueInput): Promise<Profile> {
+    await this.findProfile({ where });
+    return this.prisma.profile.delete({ where });
   }
 
   public async checkAvailableUsername(username?: string): Promise<boolean> {

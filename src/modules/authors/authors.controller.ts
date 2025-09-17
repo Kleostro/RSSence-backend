@@ -1,7 +1,5 @@
-import { QueryParamsDto } from '@/common/dto/query-params.dto';
 import { PaginatedResponse } from '@/common/interfaces/pagination.interface';
-import { ValidateQueryParamsPipe } from '@/common/pipes/validate-query-params.pipe';
-import { Author, Post as AuthorPost, Prisma } from '@/generated/prisma';
+import { Author } from '@/generated/prisma';
 import { CurrentUser } from '@/shared/decorators/current-user.decorator';
 import {
   Body,
@@ -19,12 +17,16 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 
 import { JwtAccessGuard } from '../auth/guards/jwt-acess.guard';
+import { PostQueryParamsDto } from '../posts/dto/post-query-params.dto';
+import { PostStatuses } from '../posts/interfaces/post-statuses';
 import { AVATAR_VALIDATION_PIPE } from '../profiles/constants/file-pipe-builders';
-import { FullUserInfoType } from '../users/types/types';
+import { UserWithProfileAndAuthor } from '../users/types/user.type';
 import { AuthorsService } from './authors.service';
+import { AuthorQueryParamsDto } from './dto/author-query-params.dto';
 import { CheckUsernameDto } from './dto/check-username';
 import { CreateAuthorDto } from './dto/create-author.dto';
 import { UpdateAuthorDto } from './dto/update-author.dto';
+import { AuthorContributions } from './interfaces/author-contributions';
 
 @UseGuards(JwtAccessGuard)
 @Controller('authors')
@@ -33,62 +35,59 @@ export class AuthorsController {
 
   @Get()
   public async getAll(
-    @Query(new ValidateQueryParamsPipe<QueryParamsDto>(Object.keys(Prisma.AuthorScalarFieldEnum)))
-    query: QueryParamsDto,
+    @Query()
+    query: AuthorQueryParamsDto,
   ): Promise<PaginatedResponse<Author>> {
     return this.authorsService.getAll(query);
   }
 
   @Get(':username')
-  public async getOne(@Param('username') username: string): Promise<Author | null> {
-    return this.authorsService.getOne(username);
+  public async getOne(@Param('username') username: string): Promise<Author> {
+    return this.authorsService.getOne({ username });
   }
 
   // Move to analytics service
   @Get(':username/contribution-stats')
   public async getAuthorContributionStats(
     @Param('username') username: string,
-  ): Promise<{ label: string; count: number; value: string }[]> {
-    return this.authorsService.getAuthorContributionStats(username);
-  }
-
-  @Get(':username/posts')
-  public async getAuthorPosts(
-    @Query(new ValidateQueryParamsPipe<QueryParamsDto>(Object.keys(Prisma.PostScalarFieldEnum)))
-    query: QueryParamsDto,
-    @Param('username') username: string,
-  ): Promise<PaginatedResponse<AuthorPost>> {
-    return this.authorsService.getAuthorPosts(username, query);
+    @Query() params: PostQueryParamsDto,
+    @CurrentUser('author') author: Author,
+  ): Promise<AuthorContributions[]> {
+    return this.authorsService.getAuthorContributionStats(username, params, author.username);
   }
 
   @Get(':username/post-statuses')
-  public async getAuthorPostStatuses(@Param('username') username: string): Promise<{ name: string; count: number }[]> {
-    return this.authorsService.getAuthorPostStatuses(username);
+  public async getAuthorPostStatuses(
+    @Param('username') username: string,
+    @Query() params: PostQueryParamsDto,
+    @CurrentUser('author') author: Author,
+  ): Promise<PostStatuses[]> {
+    return this.authorsService.getAuthorPostStatuses(username, params, author.username);
   }
 
   @Post()
   @UseInterceptors(FileInterceptor('avatar'))
   public async createOne(
     @Body() dto: CreateAuthorDto,
-    @CurrentUser() currentUser: FullUserInfoType,
+    @CurrentUser() currentUser: UserWithProfileAndAuthor | null,
     @UploadedFile(AVATAR_VALIDATION_PIPE) avatar: Express.Multer.File,
   ): Promise<Author> {
     return this.authorsService.createOne(dto, currentUser, avatar);
   }
 
-  @Patch(':username')
+  @Patch()
   @UseInterceptors(FileInterceptor('avatar'))
   public async updateOne(
-    @Body() updateAuthorDto: UpdateAuthorDto,
-    @Param('username') username: string,
+    @Body() dto: UpdateAuthorDto,
+    @CurrentUser('author') author: Author | null,
     @UploadedFile(AVATAR_VALIDATION_PIPE) avatar?: Express.Multer.File,
   ): Promise<Author> {
-    return this.authorsService.updateOne(updateAuthorDto, username, avatar);
+    return this.authorsService.updateOne(dto, { id: author?.id }, avatar);
   }
 
   @Delete(':username')
   public async deleteOne(@Param('username') username: string): Promise<Author> {
-    return this.authorsService.deleteOne(username);
+    return this.authorsService.deleteOne({ username });
   }
 
   @Post('username-check')

@@ -1,14 +1,28 @@
 import { Module } from '@nestjs/common';
 
-import { PostsController } from './posts.controller';
-import { PostsService } from './posts.service';
-import { ModerationPostsService } from './services/moderation-posts/moderation-posts.service';
-import { PostLogService } from './services/post-log/post-log.service';
-import { PostVersionDiffService } from './services/post-version-diff/post-version-diff.service';
+import { PostAuditController } from './controllers/post-audit.controller';
+import { PostModerationController } from './controllers/post-moderation.controller';
+import { PostsController } from './controllers/posts.controller';
+import { PostVersionsController } from './controllers/versions.controller';
+import { PostAuditService } from './services/post-audit.service';
+import { PostHistoryService } from './services/post-history.service';
+import { PostModerationService } from './services/post-moderation.service';
+import { PostService } from './services/post.service';
+import { PostsService } from './services/posts.service';
+import { VersionDiffService } from './services/utils/version-diff.service';
+import { VersionsService } from './services/versions.service';
 
 @Module({
-  controllers: [PostsController],
-  providers: [PostsService, ModerationPostsService, PostLogService, PostVersionDiffService],
-  exports: [PostsService],
+  controllers: [PostsController, PostModerationController, PostVersionsController, PostAuditController],
+  providers: [
+    PostsService,
+    PostService,
+    PostHistoryService,
+    PostAuditService,
+    PostModerationService,
+    VersionsService,
+    VersionDiffService,
+  ],
+  exports: [PostsService, PostModerationService, VersionsService, VersionDiffService, PostAuditService],
 })
 export class PostsModule {}

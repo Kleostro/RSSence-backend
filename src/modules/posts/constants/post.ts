@@ -20,3 +20,26 @@ export const POST_STATUS = {
   APPROVED: 'APPROVED',
   REJECTED: 'REJECTED',
 } as const;
+
+export const POST_STATUS_LABEL = {
+  DRAFT: 'Draft',
+  SUBMITTED: 'Under review',
+  REVISION_REQUIRED: 'Revision required',
+  APPROVED: 'Published',
+  REJECTED: 'Rejected',
+} as const;
+
+export const POST_AUTHOR_ACTION = {
+  SUBMIT: 'SUBMIT',
+  SAVE_AS_DRAFT: 'SAVE_AS_DRAFT',
+} as const;
+
+export type PostAuthorAction = keyof typeof POST_AUTHOR_ACTION;
+
+export const POST_MODERATOR_ACTION = {
+  APPROVE: 'APPROVE',
+  REJECT: 'REJECT',
+  REVISION_REQUEST: 'REVISION_REQUEST',
+} as const;
+
+export type PostModeratorAction = keyof typeof POST_MODERATOR_ACTION;

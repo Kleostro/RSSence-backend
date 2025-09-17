@@ -7,7 +7,7 @@ import { Injectable } from '@nestjs/common';
 import { DiffLine, InlineDiffPart, SideBySideDiff } from '../../interfaces/post-version-diff';
 
 @Injectable()
-export class PostVersionDiffService {
+export class VersionDiffService {
   public createSideBySideWithInlineDiff(oldStr: string, newStr: string): SideBySideDiff {
     const oldLines = this.splitLines(oldStr);
     const newLines = this.splitLines(newStr);

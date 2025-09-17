@@ -1,17 +1,14 @@
 model Post {
-  id Int @id @default(autoincrement())
-
-  title   String
-  content String
-
-  status PostStatus @default(DRAFT)
-
+  id           Int           @id @default(autoincrement())
+  title        String
+  content      String
+  slug         String?  @unique
+  status       PostStatus    @default(DRAFT)
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
   authors      PostAuthor[]
   postHistory  PostHistory[]
   postVersions PostVersion[]
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("posts")
 }

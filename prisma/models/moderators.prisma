@@ -1,12 +1,9 @@
 model Moderator {
-  id Int @id @default(autoincrement())
-
-  user   User? @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId Int?  @unique @map("user_id")
-
+  id                Int                 @id @default(autoincrement())
+  userId            Int?                @unique @map("user_id")
+  createdAt         DateTime            @default(now()) @map("created_at")
   moderationHistory ModerationHistory[]
-
-  createdAt DateTime @default(now()) @map("created_at")
+  user              User?               @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("moderators")
 }

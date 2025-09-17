@@ -1,19 +1,16 @@
 model PostVersion {
-  id Int @id @default(autoincrement())
-
+  id           Int      @id @default(autoincrement())
   title        String
   content      String
-  version      Int     @default(1)
-  isCurrent    Boolean @default(false) @map("is_current")
-  coauthorsIds Int[]   @default([])
-
-  postId Int  @map("post_id")
-  post   Post @relation(fields: [postId], references: [id], onDelete: Cascade)
-
-  authorId Int    @map("author_id")
-  author   Author @relation(fields: [authorId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now()) @map("created_at")
+  slug         String?
+  version      Int      @default(1)
+  isCurrent    Boolean  @default(false) @map("is_current")
+  coauthorsIds Int[]    @default([])
+  postId       Int      @map("post_id")
+  authorId     Int      @map("author_id")
+  createdAt    DateTime @default(now()) @map("created_at")
+  author       Author   @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  post         Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
 
   @@map("post_versions")
 }

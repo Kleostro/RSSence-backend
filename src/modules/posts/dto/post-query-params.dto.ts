@@ -1,12 +1,15 @@
 import { Transform } from 'class-transformer';
-import { ArrayNotEmpty, IsArray, IsIn, IsOptional } from 'class-validator';
+import { ArrayNotEmpty, IsArray, IsIn, IsOptional, IsString } from 'class-validator';
 
 import { QueryParamsDto } from '@/common/dto/query-params.dto';
 import { PostStatus, Prisma } from '@/generated/prisma';
 import { BadRequestException } from '@nestjs/common';
 
+import { PostSortBy } from '../interfaces/post-sort-by';
+
 export class PostQueryParamsDto extends QueryParamsDto {
   @IsOptional()
+  @IsString()
   @IsIn(
     Object.values({
       ...Prisma.PostScalarFieldEnum,
@@ -43,4 +46,11 @@ export class PostQueryParamsDto extends QueryParamsDto {
     throw new BadRequestException('Invalid value for isMainAuthor');
   })
   public isMainAuthor?: boolean;
+
+  @IsOptional()
+  @IsString()
+  @IsIn(Object.values(PostSortBy), {
+    message: `sortBy must be one of: ${Object.values(PostSortBy).join(', ')}`,
+  })
+  public override sortBy?: PostSortBy;
 }

@@ -15,7 +15,7 @@ export class QueryParamsDto {
   @IsOptional()
   @IsString()
   @IsNotEmpty()
-  public sortBy = 'id';
+  public sortBy?: string;
 
   @IsOptional()
   @Transform(({ value }: { value: string }) => value.toLowerCase())

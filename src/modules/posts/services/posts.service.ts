@@ -13,6 +13,7 @@ import { CreatePostDto } from '../dto/create-post.dto';
 import { PostQueryParamsDto } from '../dto/post-query-params.dto';
 import { UpdatePostDto } from '../dto/update-post.dto';
 import { PostAuthors } from '../interfaces/post-authors';
+import { PostSortBy } from '../interfaces/post-sort-by';
 import { PostHistoryService } from './post-history.service';
 import { PostService } from './post.service';
 
@@ -37,7 +38,7 @@ export class PostsService extends PaginationService {
     const args: Prisma.PostFindManyArgs = {
       where: finalWhere,
       include: { authors: { include: { author: true } }, postViewAggregation: true },
-      orderBy: { [params.sortBy]: params.sortOrder || 'desc' },
+      orderBy: this.buildOrderBy(params),
     };
 
     return super.getPaginatedResult<PostModel, Prisma.PostFindManyArgs>({
@@ -73,7 +74,7 @@ export class PostsService extends PaginationService {
     const args: Prisma.PostFindManyArgs = {
       where: finalWhere,
       include: { authors: { include: { author: true } }, postViewAggregation: true },
-      orderBy: { [params.sortBy ?? 'createdAt']: params.sortOrder || 'asc' },
+      orderBy: this.buildOrderBy(params),
     };
 
     return super.getPaginatedResult<PostModel, Prisma.PostFindManyArgs>({
@@ -82,6 +83,39 @@ export class PostsService extends PaginationService {
       page: params.page,
       limit: params.limit,
     });
+  }
+
+  private buildOrderBy(params: PostQueryParamsDto): Prisma.PostOrderByWithRelationInput {
+    const { sortBy, sortOrder } = params;
+
+    if (!sortBy) {
+      return { createdAt: sortOrder || 'desc' };
+    }
+
+    switch (sortBy) {
+      case PostSortBy.UNIQUE_VIEWS:
+        return {
+          postViewAggregation: {
+            uniqueViews: sortOrder === 'desc' ? 'desc' : 'asc',
+          },
+        };
+
+      case PostSortBy.TOTAL_VIEWS:
+        return {
+          postViewAggregation: {
+            totalViews: sortOrder === 'desc' ? 'desc' : 'asc',
+          },
+        };
+
+      case PostSortBy.CREATED_AT:
+      case PostSortBy.TITLE:
+        return {
+          [sortBy]: sortOrder || 'asc',
+        };
+
+      default:
+        return { createdAt: sortOrder || 'desc' };
+    }
   }
 
   public addPostSearchConditions(

@@ -35,7 +35,7 @@ export class AuthorsService extends PaginationService {
 
     const args: Prisma.AuthorFindManyArgs = {
       where: finalWhere,
-      orderBy: { [params.sortBy]: params.sortOrder || 'desc' },
+      orderBy: { [params.sortBy ?? 'createdAt']: params.sortOrder || 'desc' },
     };
     return super.getPaginatedResult<Author, Prisma.AuthorFindManyArgs>({
       model: this.prisma.author,

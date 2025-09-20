@@ -36,7 +36,7 @@ export class PostsService extends PaginationService {
 
     const args: Prisma.PostFindManyArgs = {
       where: finalWhere,
-      include: { authors: { include: { author: true } } },
+      include: { authors: { include: { author: true } }, postViewAggregation: true },
       orderBy: { [params.sortBy]: params.sortOrder || 'desc' },
     };
 
@@ -72,7 +72,7 @@ export class PostsService extends PaginationService {
 
     const args: Prisma.PostFindManyArgs = {
       where: finalWhere,
-      include: { authors: { include: { author: true } } },
+      include: { authors: { include: { author: true } }, postViewAggregation: true },
       orderBy: { [params.sortBy ?? 'createdAt']: params.sortOrder || 'asc' },
     };
 
@@ -326,7 +326,10 @@ export class PostsService extends PaginationService {
   }
 
   public async findPostWithAuthors(where: Prisma.PostWhereUniqueInput): Promise<PostModel & { authors: PostAuthor[] }> {
-    const post = await this.prisma.post.findUnique({ where, include: { authors: { include: { author: true } } } });
+    const post = await this.prisma.post.findUnique({
+      where,
+      include: { authors: { include: { author: true } }, postViewAggregation: true },
+    });
 
     if (!post) {
       throw new NotFoundException(ERROR_MESSAGES.POST_NOT_FOUND);

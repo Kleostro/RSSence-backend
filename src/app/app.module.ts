@@ -6,12 +6,14 @@ import { MailerModule } from '@nestjs-modules/mailer';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
+import { ScheduleModule } from '@nestjs/schedule';
 
 import { AuthModule } from '../modules/auth/auth.module';
 import { AppGateway } from './app.gateway';
 
 @Module({
   imports: [
+    ScheduleModule.forRoot(),
     AuthModule,
     ImagesModule,
     PrismaModule,

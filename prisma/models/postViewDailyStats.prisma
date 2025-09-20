@@ -1,0 +1,12 @@
+model PostViewDailyStats {
+  id          Int       @id @default(autoincrement())
+  postId      Int       @map("post_id")
+  post        Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
+  date        DateTime  @map("date") @db.Date
+  uniqueViews Int       @map("unique_views") @default(0)
+  totalViews  Int       @map("total_views")  @default(0)
+
+  @@unique([postId, date])
+  @@index([postId, date])
+  @@map("post_view_daily_stats")
+}

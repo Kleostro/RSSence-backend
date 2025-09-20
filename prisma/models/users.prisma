@@ -8,6 +8,7 @@ model User {
   moderator      Moderator?
   profile        Profile?
   roles          UserRole[]
+  postViews    PostView[]
 
   @@map("users")
 }

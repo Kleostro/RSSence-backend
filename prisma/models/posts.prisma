@@ -9,6 +9,9 @@ model Post {
   authors      PostAuthor[]
   postHistory  PostHistory[]
   postVersions PostVersion[]
+  postViews    PostView[]
+  postViewAggregation PostViewAggregation?
+  postViewDailyStats PostViewDailyStats[]
 
   @@map("posts")
 }

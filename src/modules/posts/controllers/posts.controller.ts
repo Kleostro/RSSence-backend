@@ -38,17 +38,8 @@ export class PostsController {
   }
 
   @Get('id/:id')
-  public async getById(
-    @Param('id', ParseIntPipe) id: number,
-    @CurrentUser() user: FullUser,
-  ): Promise<PostModel | null> {
-    const post = await this.postsService.getOne({ id });
-
-    if (post && user) {
-      await this.postViewsService.createOne(post.id, user.id);
-    }
-
-    return post;
+  public async getById(@Param('id', ParseIntPipe) id: number): Promise<PostModel | null> {
+    return this.postsService.getOne({ id });
   }
 
   @Get(':slug')
@@ -59,7 +50,12 @@ export class PostsController {
     const post = await this.postsService.findPostWithAuthors({ slug });
     let currentStats = null;
 
-    if (post && post.status === POST_STATUS.APPROVED && user) {
+    if (
+      post &&
+      post.status === POST_STATUS.APPROVED &&
+      user &&
+      !this.postViewsService.isPostAuthorViewed(post, user.author?.id)
+    ) {
       await this.postViewsService.createOne(post.id, user.id);
       currentStats = await this.postViewCurrentDayService.getCurrentDayStats(post);
     }

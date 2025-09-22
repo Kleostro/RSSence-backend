@@ -1,6 +1,7 @@
 import { PostAuthor } from '@/generated/prisma';
 import { PostModel } from '@/generated/prisma/models';
 import { PrismaService } from '@/prisma/prisma.service';
+import { TIME } from '@/shared/constants/time';
 import { Injectable } from '@nestjs/common';
 
 @Injectable()
@@ -13,7 +14,7 @@ export class PostViewCurrentDayService {
   }> {
     const todayStart = new Date();
     todayStart.setHours(0, 0, 0, 0);
-    const tomorrowStart = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000);
+    const tomorrowStart = new Date(todayStart.getTime() + TIME.DAY);
 
     const views = await this.prisma.postView.findMany({
       where: {

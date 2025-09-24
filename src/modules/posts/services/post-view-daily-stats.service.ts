@@ -1,8 +1,9 @@
-import { Author, Post, PostView } from '@/generated/prisma';
+import { Post, PostStatus, PostView } from '@/generated/prisma';
 import { PrismaService } from '@/prisma/prisma.service';
+import { TIME } from '@/shared/constants/time';
 import { Injectable } from '@nestjs/common';
 
-type PostViewWithPostAndAuthors = PostView & { post: Post & { authors: { author: Author }[] } };
+type PostViewWithPost = PostView & { post: Post };
 
 @Injectable()
 export class PostViewDailyStatsService {
@@ -13,12 +14,33 @@ export class PostViewDailyStatsService {
     const tomorrow = this.getNextDayStart(yesterday);
 
     const allViews = await this.getAllViewsForDay(yesterday, tomorrow);
-    const dailyStats = this.aggregateDailyStats(allViews, yesterday);
-    await this.saveDailyStats(dailyStats, yesterday);
+    const dailyStatsFromViews = this.aggregateDailyStats(allViews, yesterday);
+
+    const activePosts = await this.prisma.post.findMany({
+      where: { createdAt: { lte: yesterday }, status: PostStatus.APPROVED },
+      select: { id: true },
+    });
+
+    const postIdsFromViews = new Set(dailyStatsFromViews.map((stat) => stat.postId));
+    const zeroStats: { postId: number; date: Date; uniqueViews: number; totalViews: number }[] = [];
+
+    activePosts.forEach((post) => {
+      if (!postIdsFromViews.has(post.id)) {
+        zeroStats.push({
+          postId: post.id,
+          date: yesterday,
+          uniqueViews: 0,
+          totalViews: 0,
+        });
+      }
+    });
+
+    const allDailyStats = [...dailyStatsFromViews, ...zeroStats];
+    await this.saveDailyStats(allDailyStats, yesterday);
   }
 
   private getYesterdayStart(forDate: Date): Date {
-    const utcDate = new Date(forDate.getTime() + forDate.getTimezoneOffset() * 60 * 1000);
+    const utcDate = new Date(forDate.getTime() + forDate.getTimezoneOffset() * TIME.MINUTE);
     const yesterday = new Date(utcDate);
     yesterday.setUTCHours(0, 0, 0, 0);
     yesterday.setUTCDate(yesterday.getUTCDate() - 1);
@@ -26,32 +48,18 @@ export class PostViewDailyStatsService {
   }
 
   private getNextDayStart(date: Date): Date {
-    return new Date(date.getTime() + 24 * 60 * 60 * 1000);
+    return new Date(date.getTime() + TIME.DAY);
   }
 
-  private async getAllViewsForDay(start: Date, end: Date): Promise<PostViewWithPostAndAuthors[]> {
+  private async getAllViewsForDay(start: Date, end: Date): Promise<PostViewWithPost[]> {
     return this.prisma.postView.findMany({
       where: { createdAt: { gte: start, lt: end } },
-      include: { post: { include: { authors: { include: { author: true } } } } },
+      include: { post: true },
     });
-  }
-
-  private buildAuthorUserIdsMap(views: PostViewWithPostAndAuthors[]): Map<number, Set<number>> {
-    const map = new Map<number, Set<number>>();
-
-    views.forEach((view) => {
-      const { postId } = view;
-      if (!map.has(postId)) {
-        const authorUserIds = view.post.authors.map((pa) => pa.author.userId).filter((id): id is number => id !== null);
-        map.set(postId, new Set(authorUserIds));
-      }
-    });
-
-    return map;
   }
 
   private aggregateDailyStats(
-    views: PostViewWithPostAndAuthors[],
+    views: PostViewWithPost[],
     date: Date,
   ): { postId: number; date: Date; uniqueViews: number; totalViews: number }[] {
     const dailyStatsMap = new Map<string, { postId: number; date: Date; uniqueViews: number; totalViews: number }>();
@@ -71,21 +79,11 @@ export class PostViewDailyStatsService {
       }
 
       dailyStatsMap.get(key)!.totalViews += 1;
-    });
 
-    const authorUserIdsMap = this.buildAuthorUserIdsMap(views);
-
-    views.forEach((view) => {
-      const dateStr = view.createdAt.toISOString().split('T')[0];
-      const key = `${view.postId}-${dateStr}`;
-
-      const authorUserIds = authorUserIdsMap.get(view.postId);
-      if (authorUserIds && !authorUserIds.has(view.userId)) {
-        if (!uniqueUsersMap.has(key)) {
-          uniqueUsersMap.set(key, new Set<number>());
-        }
-        uniqueUsersMap.get(key)!.add(view.userId);
+      if (!uniqueUsersMap.has(key)) {
+        uniqueUsersMap.set(key, new Set<number>());
       }
+      uniqueUsersMap.get(key)!.add(view.userId);
     });
 
     return Array.from(dailyStatsMap.values()).map((stat) => ({
@@ -98,20 +96,11 @@ export class PostViewDailyStatsService {
     dailyStats: { postId: number; date: Date; uniqueViews: number; totalViews: number }[],
     date: Date,
   ): Promise<void> {
-    await this.prisma.postViewDailyStats.deleteMany({
-      where: { date },
-    });
+    await this.prisma.postViewDailyStats.deleteMany({ where: { date } });
 
-    const inserts = dailyStats.map((stat) => ({
-      postId: stat.postId,
-      date,
-      uniqueViews: stat.uniqueViews,
-      totalViews: stat.totalViews,
-    }));
-
-    if (inserts.length) {
+    if (dailyStats.length) {
       await this.prisma.postViewDailyStats.createMany({
-        data: inserts,
+        data: dailyStats,
         skipDuplicates: true,
       });
     }

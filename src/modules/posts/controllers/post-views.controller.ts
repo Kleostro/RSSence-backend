@@ -25,16 +25,4 @@ export class PostViewsController {
       query.end ? new Date(query.end) : undefined,
     );
   }
-
-  @Get('author/:authorId/trend')
-  public async getAuthorViewTrend(
-    @Param('authorId', ParseIntPipe) authorId: number,
-    @Query() query: PostViewQueryDto,
-  ): Promise<{ uniqueViews: number; totalViews: number; date: Date }[]> {
-    return this.postViewsService.getAuthorViewTrend(
-      authorId,
-      query.start ? new Date(query.start) : undefined,
-      query.end ? new Date(query.end) : undefined,
-    );
-  }
 }

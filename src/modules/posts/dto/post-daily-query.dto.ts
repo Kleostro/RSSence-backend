@@ -3,7 +3,7 @@ import { IsDate, IsNotEmpty, IsOptional } from 'class-validator';
 
 import { IsDateInRange } from '@/shared/validators/is-date-in-range.validator';
 
-export class PostViewQueryDto {
+export class PostDailyQueryDto {
   @IsOptional()
   @IsNotEmpty()
   @IsDate()
@@ -15,6 +15,6 @@ export class PostViewQueryDto {
   @IsNotEmpty()
   @IsDate()
   @Type(() => Date)
-  @IsDateInRange({ minDate: null, maxDate: new Date() }, { message: 'End must be a valid date in the past' })
+  @IsDateInRange({ minDate: null, maxDate: new Date() })
   public end?: Date;
 }

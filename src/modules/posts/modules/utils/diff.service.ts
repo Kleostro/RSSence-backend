@@ -4,10 +4,10 @@ import * as Diff from 'diff';
 import { DIFF_TYPE, DiffType } from '@/shared/constants/diff-type';
 import { Injectable } from '@nestjs/common';
 
-import { DiffLine, InlineDiffPart, SideBySideDiff } from '../../interfaces/post-version-diff';
+import { DiffLine, InlineDiffPart, SideBySideDiff } from '../versions/dto/post-version-diff';
 
 @Injectable()
-export class VersionDiffService {
+export class DiffService {
   public createSideBySideWithInlineDiff(oldStr: string, newStr: string): SideBySideDiff {
     const oldLines = this.splitLines(oldStr);
     const newLines = this.splitLines(newStr);

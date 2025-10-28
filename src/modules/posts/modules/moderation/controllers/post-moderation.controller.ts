@@ -2,13 +2,13 @@ import { RoleGuard } from '@/core/guards/role.guard';
 import { Author, Moderator } from '@/generated/prisma';
 import { PostModel } from '@/generated/prisma/models';
 import { JwtAccessGuard } from '@/modules/auth/guards/jwt-acess.guard';
+import { PostAuthorActionDto } from '@/modules/posts/modules/moderation/dto/post-author-action.dto';
+import { PostModeratorActionDto } from '@/modules/posts/modules/moderation/dto/post-moderator-action.dto';
 import { ROLES } from '@/shared/constants/roles';
 import { CurrentUser } from '@/shared/decorators/current-user.decorator';
 import { Roles } from '@/shared/decorators/roles.decorator';
 import { Body, Controller, Param, ParseIntPipe, Patch, UseGuards } from '@nestjs/common';
 
-import { PostAuthorActionDto } from '../dto/post-author-action.dto';
-import { PostModeratorActionDto } from '../dto/post-moderator-action.dto';
 import { PostModerationService } from '../services/post-moderation.service';
 
 @UseGuards(JwtAccessGuard)

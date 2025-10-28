@@ -5,12 +5,11 @@ import { CurrentUser } from '@/shared/decorators/current-user.decorator';
 import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Query, UseGuards } from '@nestjs/common';
 
 import { JwtAccessGuard } from '../../auth/guards/jwt-acess.guard';
-import { POST_STATUS } from '../constants/post';
 import { CreatePostDto } from '../dto/create-post.dto';
 import { PostQueryParamsDto } from '../dto/post-query-params.dto';
 import { UpdatePostDto } from '../dto/update-post.dto';
-import { PostViewCurrentDayService } from '../services/post-view-current-day.service';
-import { PostViewsService } from '../services/post-views.service';
+import { FullPostAnalytics } from '../interfaces/full-post-analytics';
+import { PostAnalyticsService } from '../services/post-analytics.service';
 import { PostsService } from '../services/posts.service';
 
 @UseGuards(JwtAccessGuard)
@@ -18,8 +17,7 @@ import { PostsService } from '../services/posts.service';
 export class PostsController {
   constructor(
     private readonly postsService: PostsService,
-    private readonly postViewsService: PostViewsService,
-    private readonly postViewCurrentDayService: PostViewCurrentDayService,
+    private readonly postAnalyticsService: PostAnalyticsService,
   ) {}
 
   @Get()
@@ -32,9 +30,9 @@ export class PostsController {
     @Query()
     query: PostQueryParamsDto,
     @Param('username') username: string,
-    @CurrentUser('author') author: Author,
+    @CurrentUser('author') author: Author | null,
   ): Promise<PaginatedResponse<PostModel>> {
-    return this.postsService.getPostsByAuthor(username, query, author.username);
+    return this.postsService.getPostsByAuthor(username, query, author?.username);
   }
 
   @Get('id/:id')
@@ -45,22 +43,10 @@ export class PostsController {
   @Get(':slug')
   public async getBySlug(
     @Param('slug') slug: string,
-    @CurrentUser() user: FullUser,
-  ): Promise<PostModel & { currentDayViewStats?: { uniqueViewsToday: number; totalViewsToday: number } | null }> {
-    const post = await this.postsService.findPostWithAuthors({ slug });
-    let currentStats = null;
-
-    if (
-      post &&
-      post.status === POST_STATUS.APPROVED &&
-      user &&
-      !this.postViewsService.isPostAuthorViewed(post, user.author?.id)
-    ) {
-      await this.postViewsService.createOne(post.id, user.id);
-      currentStats = await this.postViewCurrentDayService.getCurrentDayStats(post);
-    }
-
-    return { ...post, currentDayViewStats: currentStats };
+    @CurrentUser() user: FullUser | null,
+  ): Promise<FullPostAnalytics | null> {
+    const postWithAuthors = await this.postsService.findPostWithAuthors({ slug });
+    return this.postAnalyticsService.getFullPostAnalytics(postWithAuthors, user);
   }
 
   @Post()

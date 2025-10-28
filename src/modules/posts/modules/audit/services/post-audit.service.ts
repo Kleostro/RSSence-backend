@@ -1,8 +1,8 @@
 import { ModerationHistory, PostHistory } from '@/generated/prisma';
+import { PostHistoryService } from '@/modules/posts/modules/history/services/post-history.service';
 import { Injectable } from '@nestjs/common';
 
-import { PostHistoryService } from './post-history.service';
-import { PostModerationService } from './post-moderation.service';
+import { PostModerationService } from '../../moderation/services/post-moderation.service';
 
 @Injectable()
 export class PostAuditService {

@@ -1,6 +1,6 @@
 import { IsArray, IsIn, IsOptional, IsString } from 'class-validator';
 
-import { POST_MODERATOR_ACTION, PostModeratorAction } from '../constants/post';
+import { POST_MODERATOR_ACTION, PostModeratorAction } from '../../../constants/post';
 
 export class PostModeratorActionDto {
   @IsIn(Object.values(POST_MODERATOR_ACTION))

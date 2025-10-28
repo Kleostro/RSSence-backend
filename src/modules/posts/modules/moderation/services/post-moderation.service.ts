@@ -11,13 +11,13 @@ import {
   PostModeratorAction,
   TARGET_TYPE,
 } from '@/modules/posts/constants/post';
-import { CreateModerationHistory } from '@/modules/posts/dto/create-moderation-history.dto';
-import { VersionsService } from '@/modules/posts/services/versions.service';
+import { CreateModerationHistory } from '@/modules/posts/modules/moderation/dto/create-moderation-history.dto';
 import { PrismaService } from '@/prisma/prisma.service';
 import { Injectable } from '@nestjs/common';
 
-import { PostHistoryService } from './post-history.service';
-import { PostService } from './post.service';
+import { PostService } from '../../../services/post.service';
+import { PostHistoryService } from '../../history/services/post-history.service';
+import { VersionsService } from '../../versions/services/versions.service';
 
 @Injectable()
 export class PostModerationService extends PaginationService {

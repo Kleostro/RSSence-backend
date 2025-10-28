@@ -2,7 +2,7 @@ import { PrismaService } from '@/prisma/prisma.service';
 import { Logger } from '@nestjs/common';
 
 import { seedAuthors } from './authors.seed';
-import { seedPostAuthors } from './post-author.seed';
+// import { seedPostAuthors } from './post-author.seed';
 import { seedProfiles } from './profiles.seed';
 import { seedRoles } from './roles.seed';
 import { seedUsers } from './users.seed';
@@ -23,8 +23,8 @@ export const runSeed = async (prisma: PrismaService): Promise<void> => {
   const { authorIds } = await seedAuthors(prisma, userIds, usernames);
   logger.log(`✅ Authors seeded: ${authorIds.length}`);
 
-  await seedPostAuthors(prisma, authorIds);
-  logger.log('✅ Posts and author relationships seeded');
+  // await seedPostAuthors(prisma, authorIds);
+  // logger.log('✅ Posts and author relationships seeded');
 
   logger.log('🎉 Database seeding completed successfully!');
 };

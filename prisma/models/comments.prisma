@@ -1,0 +1,67 @@
+model Comment {
+  id        Int      @id @default(autoincrement())
+  content   String   @db.Text
+  parentId  Int?     @map("parent_id")
+  postId    Int      @map("post_id")
+  profileId Int      @map("profile_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  isDeleted Boolean  @default(false) @map("is_deleted")
+  likes     Int      @default(0)
+  dislikes  Int      @default(0)
+
+  post     Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
+  profile  Profile   @relation(fields: [profileId], references: [id])
+  parent   Comment?  @relation("CommentParent", fields: [parentId], references: [id])
+  children Comment[] @relation("CommentParent")
+
+  commentVotes CommentVote[]
+
+  @@index([postId, createdAt])
+  @@index([postId, parentId])
+  @@index([parentId])
+  @@map("comments")
+}
+
+model CommentVote {
+  id        Int      @id @default(autoincrement())
+  voteType  VoteType @default(NEUTRAL)
+  userId    Int      @map("user_id")
+  commentId Int      @map("comment_id")
+  comment   Comment  @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@unique([commentId, userId])
+  @@map("comment_votes")
+}
+
+enum VoteType {
+  LIKE
+  DISLIKE
+  NEUTRAL
+}
+
+model CommentAggregation {
+  postId Int  @id @map("post_id")
+  post   Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  totalComments  Int @default(0) @map("total_comments")
+  activeComments Int @default(0) @map("active_comments")
+
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("comment_aggregations")
+}
+
+model CommentDailyStats {
+  id             Int      @id @default(autoincrement())
+  postId         Int      @map("post_id")
+  post           Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  date           DateTime @map("date") @db.Date
+  totalComments  Int      @default(0) @map("total_comments")
+  activeComments Int      @default(0) @map("active_comments")
+
+  @@unique([postId, date])
+  @@index([postId, date])
+  @@map("comment_daily_stats")
+}

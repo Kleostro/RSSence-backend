@@ -1,4 +1,4 @@
-import { PostAuthor, PostStatus } from '@/generated/prisma';
+import { Author, PostAuthor, PostStatus } from '@/generated/prisma';
 import { PostModel } from '@/generated/prisma/models';
 import { PrismaService } from '@/prisma/prisma.service';
 import { ERROR_MESSAGES } from '@/shared/constants/error-message';
@@ -57,6 +57,15 @@ export class PostService {
         where: { id },
         include: { authors: { include: { author: true } } },
       });
+    });
+  }
+
+  public async getAuthorsByIds(authorIds: number[]): Promise<Author[]> {
+    if (!authorIds.length) {
+      return [];
+    }
+    return this.prisma.author.findMany({
+      where: { id: { in: authorIds } },
     });
   }
 }

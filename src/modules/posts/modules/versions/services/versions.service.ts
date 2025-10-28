@@ -3,23 +3,22 @@ import { PaginatedResponse } from '@/common/interfaces/pagination.interface';
 import { PaginationService } from '@/common/services/pagination.service';
 import { Author, PostVersion, Prisma } from '@/generated/prisma';
 import { PostModel } from '@/generated/prisma/models';
+import { ACTION_TYPE } from '@/modules/posts/constants/post';
+import { PostHistoryService } from '@/modules/posts/modules/history/services/post-history.service';
+import { DiffService } from '@/modules/posts/modules/utils/diff.service';
+import { PostVersionDiff } from '@/modules/posts/modules/versions/dto/post-version-diff';
+import { PostService } from '@/modules/posts/services/post.service';
 import { PrismaService } from '@/prisma/prisma.service';
 import { ERROR_MESSAGES } from '@/shared/constants/error-message';
 import { Injectable, NotFoundException } from '@nestjs/common';
-
-import { ACTION_TYPE } from '../constants/post';
-import { PostVersionDiff } from '../interfaces/post-version-diff';
-import { PostHistoryService } from './post-history.service';
-import { PostsService } from './posts.service';
-import { VersionDiffService } from './utils/version-diff.service';
 
 @Injectable()
 export class VersionsService extends PaginationService {
   constructor(
     prisma: PrismaService,
-    private readonly postsService: PostsService,
+    private readonly postService: PostService,
     private readonly postHistoryService: PostHistoryService,
-    private readonly versionDiffService: VersionDiffService,
+    private readonly diffService: DiffService,
   ) {
     super(prisma);
   }
@@ -58,7 +57,7 @@ export class VersionsService extends PaginationService {
   }
 
   public async getVersionsByPost(id: number, params: QueryParamsDto): Promise<PaginatedResponse<PostVersion>> {
-    await this.postsService.findPost({ id });
+    await this.postService.findById(id);
 
     const args: Prisma.PostVersionFindManyArgs = { where: { postId: id }, orderBy: { version: 'desc' } };
 
@@ -102,7 +101,7 @@ export class VersionsService extends PaginationService {
       throw new NotFoundException(ERROR_MESSAGES.AUTHOR_NOT_FOUND);
     }
 
-    await this.postsService.findPost({ id });
+    await this.postService.findById(id);
 
     const targetVersion = await this.prisma.postVersion.findFirst({
       where: { postId: id, version },
@@ -142,7 +141,7 @@ export class VersionsService extends PaginationService {
   }
 
   public async deletePostVersion(id: number, version: number): Promise<PostVersion> {
-    await this.postsService.findPost({ id });
+    await this.postService.findById(id);
 
     const targetVersion = await this.prisma.postVersion.findFirst({ where: { id, version } });
 
@@ -167,16 +166,16 @@ export class VersionsService extends PaginationService {
     }
 
     const [coauthorsFrom, coauthorsTo] = await Promise.all([
-      this.postsService.getAuthorsByIds(versionFrom.coauthorsIds),
-      this.postsService.getAuthorsByIds(versionTo.coauthorsIds),
+      this.postService.getAuthorsByIds(versionFrom.coauthorsIds),
+      this.postService.getAuthorsByIds(versionTo.coauthorsIds),
     ]);
 
-    const titleDiff = this.versionDiffService.createSideBySideWithInlineDiff(versionFrom.title, versionTo.title);
-    const contentDiff = this.versionDiffService.createSideBySideWithInlineDiff(
+    const titleDiff = this.diffService.createSideBySideWithInlineDiff(versionFrom.title, versionTo.title);
+    const contentDiff = this.diffService.createSideBySideWithInlineDiff(
       versionFrom.content ?? '',
       versionTo.content ?? '',
     );
-    const coauthorsDiff = this.versionDiffService.createSideBySideWithInlineDiff(
+    const coauthorsDiff = this.diffService.createSideBySideWithInlineDiff(
       coauthorsFrom.map((a) => a.username).join(', '),
       coauthorsTo.map((a) => a.username).join(', '),
     );

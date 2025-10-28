@@ -1,6 +1,6 @@
 model PostViewAggregation {
-  postId     Int    @id @map("post_id")
-  post       Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId Int  @id @map("post_id")
+  post   Post @relation(fields: [postId], references: [id], onDelete: Cascade)
 
   uniqueViews Int @default(0) @map("unique_views")
   totalViews  Int @default(0) @map("total_views")

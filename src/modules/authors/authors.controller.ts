@@ -51,9 +51,9 @@ export class AuthorsController {
   public async getAuthorContributionStats(
     @Param('username') username: string,
     @Query() params: PostQueryParamsDto,
-    @CurrentUser('author') author: Author,
+    @CurrentUser('author') author: Author | null,
   ): Promise<AuthorContributions[]> {
-    return this.authorsService.getAuthorContributionStats(username, params, author.username);
+    return this.authorsService.getAuthorContributionStats(username, params, author?.username);
   }
 
   @Get(':username/post-statuses')

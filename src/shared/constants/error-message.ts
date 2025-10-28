@@ -9,6 +9,7 @@ export const ERROR_MESSAGES = {
   PROFILE_EXISTS: 'Profile already exists',
   USERNAME_EXISTS: 'Username already exists',
   POST_HISTORY_NOT_FOUND: 'Post history not found',
+  COMMENT_NOT_FOUND: 'Comment not found',
   POST_NOT_FOUND: 'Post not found',
   POST_SLUG_ALREADY_EXISTS: 'Post with this slug already exists',
   ROLE_NOT_FOUND: 'Role not found',

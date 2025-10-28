@@ -1,10 +1,10 @@
 model PostViewDailyStats {
-  id          Int       @id @default(autoincrement())
-  postId      Int       @map("post_id")
-  post        Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
-  date        DateTime  @map("date") @db.Date
-  uniqueViews Int       @map("unique_views") @default(0)
-  totalViews  Int       @map("total_views")  @default(0)
+  id          Int      @id @default(autoincrement())
+  postId      Int      @map("post_id")
+  post        Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  date        DateTime @map("date") @db.Date
+  uniqueViews Int      @default(0) @map("unique_views")
+  totalViews  Int      @default(0) @map("total_views")
 
   @@unique([postId, date])
   @@index([postId, date])

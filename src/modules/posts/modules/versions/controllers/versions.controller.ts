@@ -3,10 +3,10 @@ import { PaginatedResponse } from '@/common/interfaces/pagination.interface';
 import { Author, PostVersion } from '@/generated/prisma';
 import { PostModel } from '@/generated/prisma/models';
 import { JwtAccessGuard } from '@/modules/auth/guards/jwt-acess.guard';
+import { PostVersionDiff } from '@/modules/posts/modules/versions/dto/post-version-diff';
 import { CurrentUser } from '@/shared/decorators/current-user.decorator';
 import { Controller, Delete, Get, Param, ParseIntPipe, Post, Query, UseGuards } from '@nestjs/common';
 
-import { PostVersionDiff } from '../interfaces/post-version-diff';
 import { VersionsService } from '../services/versions.service';
 
 @UseGuards(JwtAccessGuard)

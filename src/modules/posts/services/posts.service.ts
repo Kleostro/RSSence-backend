@@ -14,7 +14,7 @@ import { PostQueryParamsDto } from '../dto/post-query-params.dto';
 import { UpdatePostDto } from '../dto/update-post.dto';
 import { PostAuthors } from '../interfaces/post-authors';
 import { PostSortBy } from '../interfaces/post-sort-by';
-import { PostHistoryService } from './post-history.service';
+import { PostHistoryService } from '../modules/history/services/post-history.service';
 import { PostService } from './post.service';
 
 @Injectable()
@@ -37,7 +37,7 @@ export class PostsService extends PaginationService {
 
     const args: Prisma.PostFindManyArgs = {
       where: finalWhere,
-      include: { authors: { include: { author: true } }, postViewAggregation: true },
+      include: { authors: { include: { author: true } }, postViewAggregation: true, commentAggregation: true },
       orderBy: this.buildOrderBy(params),
     };
 
@@ -52,7 +52,7 @@ export class PostsService extends PaginationService {
   public async getPostsByAuthor(
     username: string,
     params: PostQueryParamsDto,
-    meAuthorUsername: string,
+    meAuthorUsername?: string,
   ): Promise<PaginatedResponse<PostModel>> {
     const conditions: Prisma.PostWhereInput[] = [];
     if (meAuthorUsername === username && params.status && params.status.length) {
@@ -73,7 +73,7 @@ export class PostsService extends PaginationService {
 
     const args: Prisma.PostFindManyArgs = {
       where: finalWhere,
-      include: { authors: { include: { author: true } }, postViewAggregation: true },
+      include: { authors: { include: { author: true } }, postViewAggregation: true, commentAggregation: true },
       orderBy: this.buildOrderBy(params),
     };
 
@@ -229,15 +229,6 @@ export class PostsService extends PaginationService {
     });
   }
 
-  public async getAuthorsByIds(authorIds: number[]): Promise<Author[]> {
-    if (!authorIds.length) {
-      return [];
-    }
-    return this.prisma.author.findMany({
-      where: { id: { in: authorIds } },
-    });
-  }
-
   private buildAuthorsData(mainAuthorId: number, coauthorIds: number[]): PostAuthors[] {
     return [
       { authorId: mainAuthorId, isMainAuthor: true },
@@ -313,12 +304,12 @@ export class PostsService extends PaginationService {
     const removed = oldCoauthors.filter((id) => !newCoauthors.includes(id));
 
     if (added.length) {
-      const authors = await this.getAuthorsByIds(added);
+      const authors = await this.postService.getAuthorsByIds(added);
       const addedAuthorsUsernames = authors.map((a) => a.username).join(', ');
       changes.push(`Added coauthors: ${addedAuthorsUsernames}`);
     }
     if (removed.length) {
-      const authors = await this.getAuthorsByIds(removed);
+      const authors = await this.postService.getAuthorsByIds(removed);
       const removedAuthorsUsernames = authors.map((a) => a.username).join(', ');
       changes.push(`Removed coauthors: ${removedAuthorsUsernames}`);
     }
@@ -362,7 +353,11 @@ export class PostsService extends PaginationService {
   public async findPostWithAuthors(where: Prisma.PostWhereUniqueInput): Promise<PostModel & { authors: PostAuthor[] }> {
     const post = await this.prisma.post.findUnique({
       where,
-      include: { authors: { include: { author: true } }, postViewAggregation: true },
+      include: {
+        authors: { include: { author: true } },
+        postViewAggregation: true,
+        commentAggregation: true,
+      },
     });
 
     if (!post) {

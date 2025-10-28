@@ -9,6 +9,31 @@ type PostViewWithPost = PostView & { post: Post };
 export class PostViewDailyStatsService {
   constructor(private readonly prisma: PrismaService) {}
 
+  public async getPostViewTrend(
+    postId: number,
+    start?: Date,
+    end?: Date,
+  ): Promise<{ uniqueViews: number; totalViews: number; date: Date }[]> {
+    let parseStart = start;
+    let parseEnd = end;
+
+    if (!parseStart) {
+      const now = new Date();
+      parseStart = new Date(now.getTime() - TIME.WEEK);
+      parseStart.setUTCHours(0, 0, 0, 0);
+    }
+    if (!parseEnd) {
+      parseEnd = new Date();
+      parseEnd.setUTCHours(23, 59, 59, 999);
+    }
+
+    return this.prisma.postViewDailyStats.findMany({
+      where: { postId, date: { gte: parseStart, lte: parseEnd } },
+      orderBy: { date: 'asc' },
+      select: { date: true, uniqueViews: true, totalViews: true },
+    });
+  }
+
   public async generateDailyStats(forDate: Date = new Date()): Promise<void> {
     const yesterday = this.getYesterdayStart(forDate);
     const tomorrow = this.getNextDayStart(yesterday);

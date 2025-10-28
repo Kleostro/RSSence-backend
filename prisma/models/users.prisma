@@ -1,14 +1,15 @@
 model User {
-  id             Int        @id @default(autoincrement())
-  email          String     @unique
-  hashedPassword String     @map("hashed_password")
-  createdAt      DateTime   @default(now()) @map("created_at")
-  updatedAt      DateTime   @updatedAt @map("updated_at")
+  id             Int           @id @default(autoincrement())
+  email          String        @unique
+  hashedPassword String        @map("hashed_password")
+  createdAt      DateTime      @default(now()) @map("created_at")
+  updatedAt      DateTime      @updatedAt @map("updated_at")
   author         Author?
   moderator      Moderator?
   profile        Profile?
   roles          UserRole[]
-  postViews    PostView[]
+  postViews      PostView[]
+  commentVotes   CommentVote[]
 
   @@map("users")
 }

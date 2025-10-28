@@ -1,6 +1,7 @@
 import cookieParser from 'cookie-parser';
 import { json } from 'express';
 import { join } from 'path';
+import { SwaggerTheme, SwaggerThemeNameEnum } from 'swagger-themes';
 
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
@@ -33,7 +34,9 @@ async function bootstrap(): Promise<void> {
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('docs', app, document);
+  const theme = new SwaggerTheme();
+  const options = { explorer: true, customCss: theme.getBuffer(SwaggerThemeNameEnum.DARK) };
+  SwaggerModule.setup('docs', app, document, options);
 
   app.enableCors({
     // eslint-disable-next-line consistent-return

@@ -112,7 +112,7 @@ export class AuthorsService extends PaginationService {
   public async getAuthorContributionStats(
     username: string,
     params: PostQueryParamsDto,
-    meAuthorUsername: string,
+    meAuthorUsername?: string,
   ): Promise<AuthorContributions[]> {
     const authorConditions: Prisma.AuthorWhereInput[] = [];
     const postConditions: Prisma.PostWhereInput[] = [];

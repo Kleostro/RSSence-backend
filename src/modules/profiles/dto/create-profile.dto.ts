@@ -53,6 +53,6 @@ export class CreateProfileDto {
   @IsOptional()
   @IsNotEmpty()
   @IsDate()
-  @IsDateInRange({ minDate: null, maxDate: new Date() }, { message: 'Birthdate must be a valid date in the past' })
+  @IsDateInRange({ maxDate: new Date() }, { message: 'Birthdate must be a valid date in the past' })
   public birthdate?: string;
 }

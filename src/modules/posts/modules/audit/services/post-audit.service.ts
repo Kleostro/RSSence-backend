@@ -11,7 +11,7 @@ export class PostAuditService {
     private moderationHistoryService: PostModerationService,
   ) {}
 
-  public async getFullHistory(postId: number): Promise<(PostHistory | ModerationHistory)[]> {
+  public async getHistory(postId: number): Promise<(PostHistory | ModerationHistory)[]> {
     const [postHist, modHist] = await Promise.all([
       this.postHistoryService.getAll({ postId }),
       this.moderationHistoryService.getAll({ targetId: postId }),

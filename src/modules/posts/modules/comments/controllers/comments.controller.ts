@@ -1,10 +1,24 @@
 import { PaginatedResponse } from '@/common/interfaces/pagination.interface';
 import { Comment, Profile, VoteType } from '@/generated/prisma';
 import { JwtAccessGuard } from '@/modules/auth/guards/jwt-acess.guard';
+import { POST_ACCESS_LEVEL } from '@/modules/posts/constants/post';
 import { PostDailyQueryDto } from '@/modules/posts/dto/post-daily-query.dto';
-import { UserWithProfileAndAuthor } from '@/modules/users/types/user.type';
+import { PostsAccessService } from '@/modules/posts/services/posts-access.service';
+import { FullUser, UserWithProfileAndAuthor } from '@/modules/users/types/user.type';
 import { CurrentUser } from '@/shared/decorators/current-user.decorator';
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  ForbiddenException,
+  Get,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 
 import { CommentQueryDto } from '../dto/comment-query.dto';
 import { CreateCommentDto } from '../dto/create-comment.dto';
@@ -17,6 +31,7 @@ import { CommentsService } from '../services/comments.service';
 export class CommentsController {
   constructor(
     private readonly commentsService: CommentsService,
+    private readonly postsAccessService: PostsAccessService,
     private readonly commentDailyStatsService: CommentDailyStatsService,
   ) {}
 
@@ -35,6 +50,25 @@ export class CommentsController {
     @Query() query: CommentQueryDto,
   ): Promise<PaginatedResponse<Comment>> {
     return this.commentsService.getCommentsByPostId(postId, query);
+  }
+
+  @Get(':postId/trend')
+  public async getPostCommentTrend(
+    @Param('postId', ParseIntPipe) postId: number,
+    @Query() query: PostDailyQueryDto,
+    @CurrentUser() user: FullUser | null,
+  ): Promise<{ totalComments: number; activeComments: number; date: Date }[]> {
+    const hasAccess = await this.postsAccessService.hasAccess(
+      user,
+      { id: postId },
+      POST_ACCESS_LEVEL.AUTHOR_OR_MODERATOR,
+    );
+
+    if (!hasAccess) {
+      throw new ForbiddenException();
+    }
+
+    return this.commentDailyStatsService.getCommentTrend(postId, query.start, query.end);
   }
 
   @Get(':parentId/children-count')
@@ -78,13 +112,5 @@ export class CommentsController {
     @CurrentUser() user: UserWithProfileAndAuthor & { roles: string[] },
   ): Promise<Comment | null> {
     return this.commentsService.vote(commentId, user.id, type);
-  }
-
-  @Get('post/:postId/trend')
-  public async getPostCommentTrend(
-    @Param('postId', ParseIntPipe) postId: number,
-    @Query() query: PostDailyQueryDto,
-  ): Promise<{ totalComments: number; activeComments: number; date: Date }[]> {
-    return this.commentDailyStatsService.getCommentTrend(postId, query.start, query.end);
   }
 }

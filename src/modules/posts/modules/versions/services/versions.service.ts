@@ -96,7 +96,7 @@ export class VersionsService extends PaginationService {
     });
   }
 
-  public async revertToVersion(id: number, version: number, author: Author | undefined): Promise<PostModel> {
+  public async revertToVersion(id: number, version: number, author?: Author | null): Promise<PostModel> {
     if (!author) {
       throw new NotFoundException(ERROR_MESSAGES.AUTHOR_NOT_FOUND);
     }

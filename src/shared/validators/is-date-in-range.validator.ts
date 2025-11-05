@@ -1,7 +1,7 @@
 import { registerDecorator, ValidationArguments, ValidationOptions } from 'class-validator';
 
 export function IsDateInRange(
-  { minDate, maxDate }: { minDate: Date | null; maxDate: Date | null },
+  { minDate, maxDate }: { minDate?: Date; maxDate?: Date },
   validationOptions?: ValidationOptions,
 ) {
   return (object: object, propertyName: string): void => {

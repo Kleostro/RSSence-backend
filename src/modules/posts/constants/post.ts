@@ -43,3 +43,13 @@ export const POST_MODERATOR_ACTION = {
 } as const;
 
 export type PostModeratorAction = keyof typeof POST_MODERATOR_ACTION;
+
+export const POST_ACCESS_LEVEL = {
+  AUTHOR_ONLY: 'AUTHOR_ONLY',
+  MAIN_AUTHOR_ONLY: 'MAIN_AUTHOR_ONLY',
+  MAIN_AUTHOR_OR_MODERATOR: 'MAIN_AUTHOR_OR_MODERATOR',
+  AUTHOR_OR_MODERATOR: 'AUTHOR_OR_MODERATOR',
+  MODERATOR_OR_HIGHER: 'MODERATOR_OR_HIGHER',
+} as const;
+
+export type PostAccessLevel = (typeof POST_ACCESS_LEVEL)[keyof typeof POST_ACCESS_LEVEL];

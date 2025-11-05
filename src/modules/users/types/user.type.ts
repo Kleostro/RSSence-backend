@@ -14,3 +14,7 @@ export type UserWithRoles = Prisma.UserGetPayload<{
   include: { roles: { include: { role: true } } };
   omit: { hashedPassword: true };
 }>;
+
+export type FullUserRole = Prisma.UserRoleGetPayload<{
+  include: { role: true };
+}>;

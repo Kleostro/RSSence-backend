@@ -5,6 +5,8 @@ import { ERROR_MESSAGES } from '@/shared/constants/error-message';
 import { ROLES } from '@/shared/constants/roles';
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 
+import { FullUserRole } from '../users/types/user.type';
+
 @Injectable()
 export class RolesService {
   constructor(private readonly prisma: PrismaService) {}
@@ -15,6 +17,16 @@ export class RolesService {
 
   public async getHierarchy(): Promise<{ name: string; priority: number }[]> {
     return this.prisma.role.findMany({ orderBy: { priority: 'asc' }, select: { name: true, priority: true } });
+  }
+
+  public async hasPriorityAtLeast(userRoles: FullUserRole[], minRoleName: string): Promise<boolean> {
+    const minRole = await this.getOne({ name: minRoleName });
+
+    if (!minRole) {
+      return false;
+    }
+
+    return userRoles.some((ur) => ur.role.priority >= minRole.priority);
   }
 
   public async getOne(where: Prisma.RoleWhereUniqueInput): Promise<Role> {
@@ -57,7 +69,12 @@ export class RolesService {
   }
 
   public async removeRoleFromUser(userId: number, roleId: number): Promise<UserRole> {
-    await this.hasUserRole(userId, roleId);
+    const hasUserRole = await this.hasUserRole(userId, roleId);
+
+    if (!hasUserRole) {
+      throw new NotFoundException(ERROR_MESSAGES.USER_ROLE_NOT_FOUND);
+    }
+
     return this.prisma.userRole.delete({ where: { userId_roleId: { userId, roleId } } });
   }
 

@@ -1,6 +1,6 @@
 import { ExtractJwt, Strategy } from 'passport-jwt';
 
-import { UserWithProfileAndAuthor } from '@/modules/users/types/user.type';
+import { FullUser } from '@/modules/users/types/user.type';
 import { UsersService } from '@/modules/users/users.service';
 import { ERROR_MESSAGES } from '@/shared/constants/error-message';
 import { JwtPayloadType } from '@/shared/types/jwt-payload';
@@ -22,7 +22,7 @@ export class JwtAccessStrategy extends PassportStrategy(Strategy, 'jwt-access') 
     });
   }
 
-  public async validate({ userId }: JwtPayloadType): Promise<UserWithProfileAndAuthor & { roles: string[] }> {
+  public async validate({ userId }: JwtPayloadType): Promise<FullUser> {
     const user = await this.usersService.getOne({ id: Number(userId) });
 
     if (!user) {

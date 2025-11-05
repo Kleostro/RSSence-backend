@@ -154,7 +154,7 @@ export class PostsService extends PaginationService {
     return this.findPostWithAuthors(where);
   }
 
-  public async createOne(data: CreatePostDto, author: Author | undefined): Promise<PostModel> {
+  public async createOne(data: CreatePostDto, author: Author | null): Promise<PostModel> {
     if (!author) {
       throw new NotFoundException(ERROR_MESSAGES.AUTHOR_NOT_FOUND);
     }
@@ -236,7 +236,7 @@ export class PostsService extends PaginationService {
     ];
   }
 
-  public async updateOne(id: number, dto: UpdatePostDto, author: Author | undefined): Promise<PostModel> {
+  public async updateOne(id: number, dto: UpdatePostDto, author: Author | null): Promise<PostModel> {
     if (!author) {
       throw new NotFoundException(ERROR_MESSAGES.AUTHOR_NOT_FOUND);
     }
@@ -317,7 +317,7 @@ export class PostsService extends PaginationService {
     return changes;
   }
 
-  public async deleteOne(where: Prisma.PostWhereUniqueInput, author: Author | undefined): Promise<PostModel> {
+  public async deleteOne(where: Prisma.PostWhereUniqueInput, author: Author | null): Promise<PostModel> {
     if (!author) {
       throw new NotFoundException(ERROR_MESSAGES.AUTHOR_NOT_FOUND);
     }
@@ -350,7 +350,9 @@ export class PostsService extends PaginationService {
     return post;
   }
 
-  public async findPostWithAuthors(where: Prisma.PostWhereUniqueInput): Promise<PostModel & { authors: PostAuthor[] }> {
+  public async findPostWithAuthors(
+    where: Prisma.PostWhereUniqueInput,
+  ): Promise<PostModel & { authors: (PostAuthor & { author: Author })[] }> {
     const post = await this.prisma.post.findUnique({
       where,
       include: {

@@ -13,7 +13,7 @@ import {
 } from '@/modules/posts/constants/post';
 import { CreateModerationHistory } from '@/modules/posts/modules/moderation/dto/create-moderation-history.dto';
 import { PrismaService } from '@/prisma/prisma.service';
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 
 import { PostService } from '../../../services/post.service';
 import { PostHistoryService } from '../../history/services/post-history.service';
@@ -80,10 +80,13 @@ export class PostModerationService extends PaginationService {
   public async performModeratorAction(
     postId: number,
     action: PostModeratorAction,
-    moderator: Moderator,
+    moderator?: Moderator | null,
     comment?: string,
     reasons?: string[],
   ): Promise<PostModel> {
+    if (!moderator) {
+      throw new BadRequestException('Moderator is required');
+    }
     const post = await this.postService.findById(postId);
     const data: CreateModerationHistory = {
       targetId: post.id,
@@ -118,7 +121,15 @@ export class PostModerationService extends PaginationService {
     }
   }
 
-  public async performAuthorAction(postId: number, action: PostAuthorAction, author: Author): Promise<PostModel> {
+  public async performAuthorAction(
+    postId: number,
+    action: PostAuthorAction,
+    author?: Author | null,
+  ): Promise<PostModel> {
+    if (!author) {
+      throw new BadRequestException('Author is required');
+    }
+
     await this.postService.ensureMainAuthor(postId, author.id);
     const post = await this.postService.findById(postId);
     const updated = await this.postService.updateStatus(postId, this.getNewPostStatus(action));

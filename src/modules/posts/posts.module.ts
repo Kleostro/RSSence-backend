@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 
+import { RolesModule } from '../roles/roles.module';
 import { PostsController } from './controllers/posts.controller';
 import { PostCronJob } from './jobs/post.cron-job';
 import { AuditModule } from './modules/audit/audit.module';
@@ -12,7 +13,7 @@ import { PostAnalyticsService } from './services/post-analytics.service';
 import { PostsService } from './services/posts.service';
 
 @Module({
-  imports: [ViewsModule, VersionsModule, ModerationModule, AuditModule, HistoryModule, CommentsModule],
+  imports: [ViewsModule, VersionsModule, ModerationModule, AuditModule, HistoryModule, CommentsModule, RolesModule],
   controllers: [PostsController],
   providers: [PostsService, PostAnalyticsService, PostCronJob],
   exports: [PostsService],

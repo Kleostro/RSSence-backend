@@ -9,7 +9,7 @@ import { ROLES } from '@/shared/constants/roles';
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 
 import { RolesService } from '../roles/roles.service';
-import { FullUser, UserWithProfileAndAuthor } from './types/user.type';
+import { FullUser } from './types/user.type';
 
 @Injectable()
 export class UsersService extends PaginationService {
@@ -20,7 +20,7 @@ export class UsersService extends PaginationService {
     super(prisma);
   }
 
-  public async getOne(where: Prisma.UserWhereUniqueInput): Promise<UserWithProfileAndAuthor & { roles: string[] }> {
+  public async getOne(where: Prisma.UserWhereUniqueInput): Promise<FullUser> {
     const user = await this.prisma.user.findUnique({
       where,
       include: { roles: { include: { role: true } }, profile: true, author: true, moderator: true },
@@ -31,10 +31,7 @@ export class UsersService extends PaginationService {
       throw new NotFoundException(ERROR_MESSAGES.USER_NOT_FOUND);
     }
 
-    return {
-      ...user,
-      roles: user.roles.map((userRole) => userRole.role.name),
-    };
+    return user;
   }
 
   public async createOne(data: Prisma.UserCreateInput): Promise<User> {
@@ -45,9 +42,7 @@ export class UsersService extends PaginationService {
     return user;
   }
 
-  public async getAll(
-    params: QueryParamsDto,
-  ): Promise<PaginatedResponse<Omit<User, 'hashedPassword'> & { roles: string[] }>> {
+  public async getAll(params: QueryParamsDto): Promise<PaginatedResponse<FullUser>> {
     const where: Prisma.UserWhereInput = params.search
       ? { [params.searchField || 'email']: { contains: params.search, mode: 'insensitive' } }
       : {};
@@ -68,7 +63,7 @@ export class UsersService extends PaginationService {
       ...result,
       items: result.items.map((user) => ({
         ...user,
-        roles: user.roles.sort((a, b) => a.role.priority - b.role.priority).map((userRole) => userRole.role.name),
+        roles: user.roles.sort((a, b) => a.role.priority - b.role.priority),
       })),
     };
   }

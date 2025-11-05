@@ -46,21 +46,19 @@ export class PostsController {
     @CurrentUser() user: FullUser | null,
   ): Promise<FullPostAnalytics | null> {
     const postWithAuthors = await this.postsService.findPostWithAuthors({ slug });
+
     return this.postAnalyticsService.getFullPostAnalytics(postWithAuthors, user);
   }
 
   @Post()
-  public async createOne(
-    @CurrentUser('author') author: Author | undefined,
-    @Body() dto: CreatePostDto,
-  ): Promise<PostModel> {
+  public async createOne(@CurrentUser('author') author: Author | null, @Body() dto: CreatePostDto): Promise<PostModel> {
     return this.postsService.createOne(dto, author);
   }
 
   @Patch(':id')
   public async updateOne(
     @Param('id', ParseIntPipe) id: number,
-    @CurrentUser('author') author: Author | undefined,
+    @CurrentUser('author') author: Author | null,
     @Body() dto: UpdatePostDto,
   ): Promise<PostModel> {
     return this.postsService.updateOne(id, dto, author);
@@ -69,7 +67,7 @@ export class PostsController {
   @Delete(':id')
   public async deleteOne(
     @Param('id', ParseIntPipe) id: number,
-    @CurrentUser('author') author: Author | undefined,
+    @CurrentUser('author') author: Author | null,
   ): Promise<PostModel> {
     return this.postsService.deleteOne({ id }, author);
   }

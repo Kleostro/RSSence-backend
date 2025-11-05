@@ -8,13 +8,13 @@ export class PostDailyQueryDto {
   @IsNotEmpty()
   @IsDate()
   @Type(() => Date)
-  @IsDateInRange({ minDate: null, maxDate: new Date() }, { message: 'Start must be a valid date in the past' })
+  @IsDateInRange({ maxDate: new Date() }, { message: 'Start must be a valid date in the past' })
   public start?: Date;
 
   @IsOptional()
   @IsNotEmpty()
   @IsDate()
   @Type(() => Date)
-  @IsDateInRange({ minDate: null, maxDate: new Date() })
+  @IsDateInRange({ maxDate: new Date() }, { message: 'End must be a valid date in the past' })
   public end?: Date;
 }
